@@ -13,6 +13,38 @@ from tests.helpers import NOW, make_deploy_home
 
 
 class StageTests(unittest.TestCase):
+    def test_stage_reports_configured_plugins_separately_from_session_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home, skills_root = make_deploy_home(root)
+            snapshot = observe(
+                codex_home,
+                [skills_root],
+                days=7,
+                now=NOW,
+                project_root=root,
+                catalog_entries=[
+                    {
+                        "kind": "plugin",
+                        "name": "browser@openai-bundled",
+                        "status": "installed, enabled",
+                        "source": "codex-plugin-list",
+                    }
+                ],
+                catalog_checked=True,
+            )
+            output = root / ".codex-metabolism"
+
+            stage_review(snapshot, [], output, generated_at=NOW)
+
+            report = (output / "report.md").read_text(encoding="utf-8")
+            payload = json.loads((output / "decisions.json").read_text(encoding="utf-8"))
+            self.assertIn(
+                "session-observed PATH tools=0 · configured plugins=1",
+                report,
+            )
+            self.assertEqual(payload["observation"]["configured_plugin_count"], 1)
+
     def test_stage_writes_review_artifacts_without_touching_live_codex_files(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

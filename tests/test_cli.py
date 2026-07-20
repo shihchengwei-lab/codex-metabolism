@@ -4,14 +4,38 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
-from codex_metabolism.cli import main
+from codex_metabolism.cli import _plugin_catalog, main
 
 from tests.helpers import NOW, make_deploy_home, write_skill
 
 
 class CliTests(unittest.TestCase):
+    def test_plugin_inventory_uses_shared_launcher_and_skips_not_installed_entries(self) -> None:
+        output = """\
+Marketplace `openai-curated`
+PLUGIN                       STATUS              VERSION
+browser@openai-bundled       installed, enabled  1.2.3
+slack@openai-curated         not installed
+"""
+        resolved = [r"C:\Windows\System32\cmd.exe", "/d", "/s", "/c", "codex.cmd"]
+
+        with (
+            patch("codex_metabolism.cli.build_codex_command", return_value=resolved) as build,
+            patch(
+                "codex_metabolism.cli.subprocess.run",
+                return_value=SimpleNamespace(returncode=0, stdout=output, stderr=""),
+            ) as run,
+        ):
+            entries = _plugin_catalog()
+
+        build.assert_called_once_with(["plugin", "list"])
+        self.assertEqual(run.call_args.args[0], resolved)
+        self.assertEqual([entry["name"] for entry in entries], ["browser@openai-bundled"])
+        self.assertEqual(entries[0]["status"], "installed, enabled")
+
     def test_review_command_runs_observe_decide_stage(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -110,9 +134,12 @@ class CliTests(unittest.TestCase):
             )
 
     def test_codex_advisor_is_opt_in_and_attached_as_non_authoritative_metadata(self) -> None:
+        advisor_models: list[str] = []
+
         class FakeAdvisor:
             def __init__(self, *, model: str) -> None:
                 self.model = model
+                advisor_models.append(model)
 
             def advise(self, candidates: list[dict], *, cwd: Path) -> list[dict]:
                 candidate = candidates[0]
@@ -165,6 +192,7 @@ class CliTests(unittest.TestCase):
             )
             self.assertEqual(advised["metadata"]["codex_advisor"]["confidence"], "high")
             self.assertEqual(advised["metadata"]["advisor_role"], "non_authoritative")
+            self.assertEqual(advisor_models, ["gpt-5.6-sol"])
 
     def test_activate_tool_command_records_existing_artifact_without_installing_it(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title description">
   <title id="title">Codex Metabolism judge demo</title>
-  <desc id="description">A terminal runs the zero-install synthetic demo and validates a harness across two review generations, beside an observe, adopt, evaluate, and prune loop.</desc>
+  <desc id="description">Two repeated deployment failures become one mechanical guard, which later Codex sessions validate, beside an observe, adopt, evaluate, and prune loop.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#08111f"/>
@@ -20,7 +20,7 @@
   <circle cx="1160" cy="650" r="230" fill="#4ade80" opacity="0.06"/>
 
   <text x="54" y="67" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">Codex Metabolism</text>
-  <text x="54" y="101" fill="#a5b4fc" font-family="Segoe UI, Arial, sans-serif" font-size="18">A finite, evidence-driven improvement loop for Codex collaboration</text>
+  <text x="54" y="101" fill="#a5b4fc" font-family="Segoe UI, Arial, sans-serif" font-size="18">2 repeated deploy failures → 1 mechanical guard → validated later</text>
 
   <g filter="url(#shadow)">
     <rect x="48" y="137" width="690" height="462" rx="18" fill="#090f1d" stroke="#334155"/>
@@ -33,7 +33,7 @@
   <text x="146" y="167" fill="#94a3b8" font-family="Consolas, monospace" font-size="14">judge-demo — synthetic data only</text>
 
   <text x="76" y="225" fill="#7dd3fc" font-family="Consolas, monospace" font-size="17">$ python examples/run_closed_loop_demo.py</text>
-  <text x="76" y="270" fill="#cbd5e1" font-family="Consolas, monospace" font-size="15">Staged 4 decisions (4 ready, 0 needs research)</text>
+  <text x="76" y="270" fill="#cbd5e1" font-family="Consolas, monospace" font-size="15">Evidence: 2 failed deploys · 2 corrections · old-unused skill</text>
 
   <rect x="74" y="298" width="624" height="76" rx="12" fill="#101b2e" stroke="#334155"/>
   <text x="94" y="329" fill="#f8fafc" font-family="Consolas, monospace" font-size="16" font-weight="700">First review</text>
