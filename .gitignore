@@ -6,4 +6,5 @@ build/
 dist/
 .codex-metabolism/
 .demo-review/
+.submission/
 examples/demo-project/.codex/

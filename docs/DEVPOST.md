@@ -6,6 +6,9 @@
 - **Track:** Developer Tools
 - **Tagline:** Evidence-driven metabolism for the whole Codex collaboration stack.
 - **One sentence:** Codex Metabolism learns from session friction, finds or creates the smallest useful intervention across harnesses, tools, skills, and bounded rules, then evaluates and prunes it using later sessions.
+- **Repository:** https://github.com/shihchengwei-lab/codex-metabolism
+- **Demo video:** `[USER ACTION: add public YouTube URL]`
+- **Primary `/feedback` Session ID:** `[USER ACTION: run /feedback in the primary build thread]`
 
 ## Inspiration
 
@@ -69,23 +72,15 @@ Finally, several open-source projects already solve parts of exploration, evolut
 
 The slime-mold analogy proved useful. The system grows a path only when repeated evidence justifies it, tests the path against future traffic, reinforces what works, and withdraws low-value structure. The key product object is therefore not a generated skill; it is the entire evidence-to-intervention-to-evaluation cycle.
 
-## Under-three-minute demo plan
+## Demo video
 
-**0:00–0:20 — Problem.** Show an overloaded collaboration setup. Explain that agents naturally add context but do not naturally maintain a clean finite system.
+The ready-to-record [video production pack](DEMO_VIDEO.md) contains a 2:50 English voiceover, privacy-safe shot list, capture checklist, YouTube metadata, and timed [SRT captions](demo-voiceover.en.srt). It uses only the repository's synthetic data and leaves ten seconds of safety margin below the three-minute limit.
 
-**0:20–0:40 — Evidence.** Show two synthetic Codex sessions with the same failed deployment, user correction, and verified recovery.
+## What's next
 
-**0:40–1:00 — First review.** Run `python examples/run_closed_loop_demo.py`. Show `CREATE HARNESS`, `PATCH RULE`, `KEEP SKILL`, and `RETIRE_CANDIDATE SKILL`.
-
-**1:00–1:30 — Router and trust boundary.** Open the five-rung ladder, staged hook, and `AGENTS.md` diff. Show that the human-owned prefix and suffix are unchanged and only the marked region is patchable.
-
-**1:30–2:00 — Closed loop.** Show the project hook's `PENDING_TRUST` receipt and the explicit `/hooks` trust boundary. The isolated replay records that confirmation, adds two later successful sessions, and runs review again. Show `KEEP HARNESS (VALIDATED)` and the active receipt that prevents duplicate creation.
-
-**2:00–2:25 — Pruning and reversibility.** Show `RETIRE_CANDIDATE old-unused`, `archive`, `restore`, and `rollback`. Explain that review deletes nothing.
-
-**2:25–2:45 — Existing tools.** Show the adoption ladder and an external-tool proposal. Explain `activate-tool` and `retire-tool` only record user-reviewed actions; they never install or delete third-party code.
-
-**2:45–3:00 — Close.** “Codex Metabolism helps AI collaboration improve without only accumulating: observe, adopt, evaluate, and prune.”
+- Validate the streaming parser against additional documented Codex JSONL variants while preserving explicit coverage reporting.
+- Add adapters for mature lifecycle and session tools instead of rebuilding their capabilities.
+- Run longer opt-in evaluations to calibrate validation and retirement thresholds without treating silence as success.
 
 ## Submission checklist
 
@@ -97,7 +92,8 @@ The [OpenAI Build Week page](https://openai.devpost.com/) currently requires a w
 - [x] One-command isolated two-generation demo.
 - [x] Supported-platform status stated honestly.
 - [x] Codex/GPT-5.6 contribution and human decisions documented.
-- [ ] Publish repository or share the private repository with the required judging addresses.
+- [x] English voiceover script, timed captions, and privacy-safe shot list prepared.
+- [x] Publish repository: https://github.com/shihchengwei-lab/codex-metabolism
 - [ ] Record and upload a public YouTube video shorter than three minutes with audio.
 - [ ] Obtain and enter the `/feedback` Codex Session ID.
 - [ ] Create and submit the Devpost project form.

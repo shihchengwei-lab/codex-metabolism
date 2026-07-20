@@ -2,14 +2,57 @@
 
 > An evidence-driven collaboration metabolism layer for Codex: observe recurring friction, adopt or create the smallest useful intervention, evaluate it on later sessions, and prune what no longer helps.
 
+[繁體中文](README.zh-TW.md) · OpenAI Build Week track: **Developer Tools**
+
+## Judge quick start — under 60 seconds
+
+Requirements: Python 3.11 or newer. No installation, API key, Codex login, or personal session data is required.
+
+```bash
+git clone https://github.com/shihchengwei-lab/codex-metabolism.git
+cd codex-metabolism
+python examples/run_closed_loop_demo.py
+```
+
+Expected proof of the two-generation loop:
+
+```text
+First review: CREATE HARNESS + PATCH RULE
+Second review: KEEP HARNESS (VALIDATED)
+```
+
+The command copies synthetic fixtures into an isolated retained temporary directory, applies only to that copy, and prints the artifact path for inspection. It neither reads nor changes real Codex sessions, skills, hooks, or `AGENTS.md` files.
+
+![Codex Metabolism judge demo: a zero-install terminal run closes the observe, adopt, evaluate, and prune loop](docs/assets/judge-demo.png)
+
+[Editable SVG source](docs/assets/judge-demo.svg)
+
+## Who it is for
+
+Codex Metabolism is for developers and teams whose Codex setup accumulates rules, skills, hooks, scripts, and tools faster than anyone can evaluate them. It turns repeated collaboration friction into a finite, evidence-backed maintenance loop instead of another ever-growing memory layer.
+
+## How Codex and GPT-5.6 built this
+
+### Codex and GPT-5.6 contributions
+
+The primary build thread used Codex with GPT-5.6 to inspect real local JSONL variants, separate hard signals from inference, search for existing open-source components before building, write failing tests for each implementation slice, and close the receipt/evaluation/rollback loop. The required `/feedback` Session ID for that thread will be supplied directly in the Devpost submission.
+
+### Human product decisions
+
+The human collaborator chose the product boundaries: expand metabolism beyond skills, prefer mechanical safeguards over more prose, search installed and external tools before creating anything, cap managed rules, preserve human-owned `AGENTS.md` content, use synthetic public data, and require explicit approval at every mutation boundary.
+
+### Runtime boundary
+
+The deterministic judge demo intentionally makes no model call. It proves the closed loop reproducibly with synthetic fixtures. The separate `--advisor codex` option can request a bounded GPT-5.6 second opinion through the user's existing Codex authentication, but that advice is non-authoritative and cannot bypass deterministic safety gates.
+
+See [the Devpost submission draft](docs/DEVPOST.md) and [the English video production pack](docs/DEMO_VIDEO.md) for the build story and demo plan.
+
 Codex Metabolism does not update model weights. It maintains the procedural environment around Codex across four intervention layers:
 
 - `HARNESS`: hooks, tests, scripts, config, permissions, and other mechanical safeguards.
 - `TOOL`: installed capabilities, plugins, CLIs, and reviewed open-source projects.
 - `SKILL`: reusable contextual workflows.
 - `RULE`: durable guidance in `AGENTS.md`.
-
-The OpenAI Build Week submission target is **Developer Tools**.
 
 ## The closed loop
 
@@ -224,16 +267,10 @@ python -m build
 
 The test suite covers JSONL variants and malformed input, parser coverage, adoption-ladder routing, external-tool privacy, SkillReaper import, whole-file `AGENTS.md` review, managed-region byte preservation, staging, hash-gated apply, future-session evaluation, duplicate suppression, rollback, skill archive/restore, manual external-tool activation/retirement, and the structured advisor.
 
-Current platform status:
+## Supported platforms
 
-- Windows with Python 3.12: verified in this checkout.
-- macOS/Linux with Python 3.11+: designed for standard-library portability, not yet verified here.
-
-## Built with Codex and GPT-5.6
-
-Codex with GPT-5.6 was used for the core implementation: inspect real local JSONL shapes, distinguish evidence from inference, search for existing tools before building, write failing tests first, and close the intervention receipt/evaluation/rollback loop. Human product decisions remained explicit: broaden beyond skills, prefer mechanical fixes, cap durable rules, preserve human-owned `AGENTS.md` content, and require approval at every mutation boundary.
-
-See [docs/DEVPOST.md](docs/DEVPOST.md) for submission copy and the under-three-minute demo plan.
+- **Windows, Python 3.12:** verified in this checkout and again from a clean public clone.
+- **macOS/Linux, Python 3.11+:** designed for standard-library portability, not yet verified by this project team.
 
 ## License
 

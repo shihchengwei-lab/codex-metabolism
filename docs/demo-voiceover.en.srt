@@ -1,0 +1,54 @@
+1
+00:00:00,000 --> 00:00:13,000
+Coding agents are good at adding rules, memories, skills, and tools.
+But accumulation is not improvement, and old interventions rarely remove themselves.
+
+2
+00:00:13,000 --> 00:00:29,000
+Codex Metabolism gives Codex collaboration a finite maintenance loop:
+observe recurring friction, adopt the smallest useful fix, evaluate it on later sessions, and prune what no longer helps.
+
+3
+00:00:29,000 --> 00:00:45,000
+We built the core with Codex and GPT-5.6.
+It helped inspect real session formats, separate evidence from inference, search existing tools first, and work from failing tests.
+
+4
+00:00:45,000 --> 00:01:00,000
+This public demo uses only synthetic sessions.
+Two sessions repeat a failed deployment, user correction, and verified recovery. No private data is read.
+
+5
+00:01:00,000 --> 00:01:18,000
+One zero-install command runs the first review.
+It stages four evidence-backed decisions, including CREATE HARNESS for mechanical prevention and PATCH RULE for the bounded managed region in AGENTS.md.
+
+6
+00:01:18,000 --> 00:01:35,000
+Before creating anything, the router climbs five rungs:
+necessity, Codex built-ins, installed capabilities, repository assets, and reviewed open-source tools. An unchecked rung blocks creation.
+
+7
+00:01:35,000 --> 00:01:53,000
+Review never mutates live state.
+The hook begins as pending trust, only the marked AGENTS.md region is patchable, and every approved change receives a reversible receipt.
+
+8
+00:01:53,000 --> 00:02:12,000
+The isolated demo then adds two later successful sessions and reviews again.
+The result is KEEP HARNESS, VALIDATED. Its active receipt also prevents Codex Metabolism from proposing the same fix again.
+
+9
+00:02:12,000 --> 00:02:29,000
+The same review keeps a useful skill and marks an old unused skill as a retirement candidate only when lifecycle evidence is complete.
+Retirement is human-approved, archived, and restorable—never silent deletion.
+
+10
+00:02:29,000 --> 00:02:42,000
+Existing tools come before new code and are never auto-installed.
+An optional GPT-5.6 advisor adds a bounded second opinion without overriding deterministic gates.
+
+11
+00:02:42,000 --> 00:02:50,000
+Codex Metabolism improves collaboration:
+observe, adopt, evaluate, and prune.
