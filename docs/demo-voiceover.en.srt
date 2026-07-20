@@ -5,8 +5,9 @@ Meanwhile AGENTS rules and unused skills accumulate, but nothing removes itself.
 
 2
 00:00:15,000 --> 00:00:29,000
-Codex Metabolism gives Codex collaboration a finite maintenance loop:
-observe recurring friction, adopt the smallest useful fix, evaluate it on later sessions, and prune what no longer helps.
+Agent memory asks what to add.
+Slime mold tests paths through use: reinforce what works, withdraw what does not.
+Codex Metabolism applies this logic to later sessions.
 
 3
 00:00:29,000 --> 00:00:43,000
@@ -50,5 +51,5 @@ It agreed on CREATE HARNESS, challenged the rule patch with KEEP RULE, and remai
 
 11
 00:02:42,000 --> 00:02:50,000
-Codex Metabolism improves collaboration:
-observe, adopt, evaluate, and prune.
+Codex Metabolism: not just better skills.
+It validates what works and forgets the rest.

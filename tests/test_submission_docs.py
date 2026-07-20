@@ -118,6 +118,17 @@ class SubmissionDocsTests(unittest.TestCase):
             "synthetic",
         ):
             self.assertIn(required, subtitle_text)
+        for required in (
+            "Agent memory asks what to add.",
+            "Slime mold tests paths through use",
+            "reinforce what works, withdraw what does not",
+            "not just better skills",
+        ):
+            self.assertIn(required, subtitle_text)
+        self.assertLess(
+            subtitle_text.index("Slime mold tests paths through use"),
+            subtitle_text.index("We built the core"),
+        )
         self.assertIn("privacy", guide_text.lower())
         for required in (
             "YouTube",
@@ -125,6 +136,9 @@ class SubmissionDocsTests(unittest.TestCase):
             "English voiceover",
             "live synthetic advisor run",
             "--advisor codex --advisor-model gpt-5.6-sol",
+            "abstract slime-mold network",
+            "future-session evidence",
+            "fades unused branches",
         ):
             self.assertIn(required, guide_text)
 
