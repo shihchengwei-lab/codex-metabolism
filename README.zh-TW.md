@@ -53,6 +53,8 @@ Second review: KEEP HARNESS (VALIDATED)
 ```text
 協作 session
     ↓
+手動 review 或明確啟用的排程觸發
+    ↓
 review session、coverage、現有介入與工具組合
     ↓
 必要性 → Codex 內建 → 已安裝 → repo 既有 → 外部生態
@@ -140,6 +142,41 @@ codex-metabolism review --days 7 --search-oss
 ```
 
 review 只寫入 `.codex-metabolism/`。同一個專案請持續使用同一個 output directory，因為 `interventions.jsonl` 是把批准變更與後續 session 串起來的回執帳本。
+
+## 讓迴圈持續運轉——明確啟用
+
+如果還要使用者記得定期執行 review，操作上的閉環就沒有完成。**預設不會安裝任何排程。**使用者明確啟用一次後，Codex Metabolism 才會安裝 user-level 本機排程：
+
+```powershell
+codex-metabolism enable --every-days 7 --after-sessions 10
+codex-metabolism status
+codex-metabolism disable
+```
+
+| 平台 | 原生排程 | 安裝的排程檔案 |
+|---|---|---|
+| Windows | Windows Task Scheduler | `.codex-metabolism/automation/run-scheduled-review.cmd` |
+| macOS | `launchd` agent | `~/Library/LaunchAgents/<schedule-id>.plist` |
+| Linux | systemd user timer | `~/.config/systemd/user/<schedule-id>.service` 與 `.timer` |
+
+排程每天檢查一次；只有至少出現一個新 session，並且累積十個新 session 或距離上次成功 review 已七天時，才真正執行分析。沒有新 session 時只更新 idle heartbeat，不空跑 review。若已有 staged review，第一次排程會以它作為時間基準；否則以第一次啟用時間為基準。**若沒有先前 staged review，第一次啟用以前的 session 不算新 session。**
+
+背景流程只能自動完成 Observe、Decide 與 Stage，**不會自動 Apply**、啟用 hook、安裝工具、修改 live `AGENTS.md`、封存 skill 或刪除任何內容。背景使用 deterministic router，不會啟用 GPT-5.6 advisor；`--search-oss` 維持關閉，除非使用者在 `enable` 時明確同意。
+
+專案內可以直接檢查這些狀態：
+
+```text
+automation/
+├── config.json       # 門檻與完整 staged-review 命令
+├── heartbeat.json    # 最後檢查、成功、backlog 與錯誤
+└── NOTICE.md         # review 執行後的最新 staged-review 通知
+```
+
+原生排程檔位於上表的各平台路徑。`launchd` 的 stdout 與 stderr log 寫入 automation directory；systemd 的執行歷史留在 user journal，Windows 的執行歷史留在 Task Scheduler。
+
+`codex-metabolism status` 會確認原生排程是否仍存在；排程遺失、review 失敗或超過 48 小時沒有 heartbeat 時，分別顯示 `unregistered`、`error` 或 `overdue`，並回傳非零狀態。手動 review 成功時也會更新同一份 heartbeat，避免背景排程立刻重做。
+
+`disable` 只移除原生排程，保留設定與 heartbeat 作為稽核紀錄。作業系統通知是 best effort，可用 `--no-notify` 關閉。完全沒有啟動的程序無法自行回報失敗，因此 `status` 與作業系統排程歷史仍是外部健康檢查。
 
 批准命令：
 

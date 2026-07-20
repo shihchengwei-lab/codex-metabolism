@@ -111,6 +111,9 @@ The lifecycle follows five constraints:
 Codex collaboration sessions
           |
           v
+manual review or opt-in scheduled trigger
+          |
+          v
 observe evidence + parser coverage + current intervention receipts
           |
           v
@@ -237,6 +240,41 @@ By default, review scans recent `~/.codex/sessions/`, installed skills, the curr
 ```
 
 Reuse the same output directory across reviews. `interventions.jsonl` is the local receipt ledger that connects an approved change to later session evidence.
+
+## Keep the loop running — opt in
+
+A manual review loop still fails if the user has to remember it. **No schedule is installed by default.** After one explicit opt-in, Codex Metabolism installs a native user-level schedule:
+
+```powershell
+codex-metabolism enable --every-days 7 --after-sessions 10
+codex-metabolism status
+codex-metabolism disable
+```
+
+| Platform | Native backend | Installed scheduler artifact |
+|---|---|---|
+| Windows | Windows Task Scheduler | `.codex-metabolism/automation/run-scheduled-review.cmd` |
+| macOS | `launchd` agent | `~/Library/LaunchAgents/<schedule-id>.plist` |
+| Linux | systemd user timer | `~/.config/systemd/user/<schedule-id>.service` and `.timer` |
+
+The schedule checks once per day, but it runs a review only when at least one new Codex session exists and either threshold is reached: ten new sessions, or seven days since the last successful review. With no new sessions it records an idle heartbeat and does not run analysis. A previous staged review provides the initial time anchor when available; otherwise the first enable time is the anchor. **With no prior staged review, sessions from before the first enable are not counted as new.**
+
+Automation preserves the same trust boundary as an interactive review. It may automatically **Observe, Decide, and Stage**; it will **never Apply**, activate a hook, install a tool, rewrite live guidance, archive a skill, or delete anything. It uses the deterministic router, does not enable the GPT-5.6 advisor, and `--search-oss` remains off unless the user explicitly adds that flag to `enable`.
+
+State is inspectable under `.codex-metabolism/automation/`:
+
+```text
+automation/
+├── config.json       # thresholds and the exact staged-review command
+├── heartbeat.json    # last check, last success, backlog, and last error
+└── NOTICE.md         # latest staged-review notice, after a review runs
+```
+
+The native scheduler artifacts live at the platform paths shown above. `launchd` writes stdout and stderr logs into the automation directory; systemd execution history remains in the user journal, and Windows execution history remains in Task Scheduler.
+
+`codex-metabolism status` verifies that the native schedule is still registered. A missing schedule, a failed review, or a heartbeat older than 48 hours is reported as `unregistered`, `error`, or `overdue`; the command exits non-zero for those unhealthy states. Successful manual reviews refresh the same heartbeat, so the scheduler does not immediately repeat work. Local OS notifications are best-effort and can be disabled with `--no-notify`.
+
+`disable` removes the native schedule but retains configuration and heartbeat files as an audit trail. Re-enabling is explicit. Because a process that never starts cannot report its own failure, `status` and the operating system's scheduler history remain the external health checks.
 
 ## `AGENTS.md` ownership boundary
 
