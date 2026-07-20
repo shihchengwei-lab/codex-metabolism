@@ -30,22 +30,20 @@ def main() -> int:
     if event.get("hook_event_name") != "PreToolUse" or event.get("tool_name") != "Bash":
         return 0
     command = str((event.get("tool_input") or {}).get("command") or "")
-    folded = command.casefold()
-    protected = rule["protected_command"].casefold()
-    required = rule["required_command"].casefold()
-    protected_at = folded.find(protected)
-    if protected_at < 0:
+    normalized = " ".join(command.split()).casefold()
+    protected = " ".join(rule["protected_command"].split()).casefold()
+    required = " ".join(rule["required_command"].split()).casefold()
+    if protected not in normalized:
         return 0
-    required_at = folded.find(required)
-    if 0 <= required_at < protected_at:
+    if normalized == f"{required} && {protected}":
         return 0
     output = {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
             "permissionDecisionReason": (
-                f"Codex Metabolism guard: run `{rule['required_command']}` before "
-                f"`{rule['protected_command']}` in the same shell command."
+                "Codex Metabolism guard: use the exact reviewed sequence "
+                f"`{rule['required_command']} && {rule['protected_command']}`."
             ),
         }
     }

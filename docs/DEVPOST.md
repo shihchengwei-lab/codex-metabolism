@@ -35,6 +35,8 @@ The secondary public replay, `python examples/run_friction_cases_demo.py`, demon
 
 Because clean fixtures can overstate robustness, `python examples/run_messy_evidence_demo.py` adds a six-session imperfect-data pressure test. Differently worded corrections, unrelated successes, a one-off recovery, repeated failures without verified recovery, a success in the wrong session, malformed JSONL, a high-star catalog distractor, and incomplete lifecycle evidence produce one evidence-backed decision, two explicit abstentions, one parser coverage warning, and zero unsafe retirement decisions. The non-actions are written to an inspectable challenge summary without adding an unsupported fifth decision type. This remains a synthetic stress fixture, not a real-world quality benchmark, and it does not claim semantic clustering across paraphrased commands.
 
+A separate 24-case detector boundary evaluation publishes the limitation instead of hiding it: eight supported positives are detected, eight semantic or parameter variants are missed, all eight negatives abstain, and the resulting synthetic precision/recall are 1.000/0.500 with zero false positives. It is explicitly not presented as real-user impact or causal validation.
+
 `AGENTS.md` has a mixed-ownership boundary. The entire active document is evaluated, but only bytes between an existing valid `codex-metabolism:managed-start` / `managed-end` marker pair can be changed after explicit approval. Everything else remains recommendation-only. Full-file hashes, a ten-rule managed cap, and rollback protect the human-owned file.
 
 ## How we built it
@@ -85,7 +87,7 @@ The slime-mold analogy proved useful. The system grows a path only when repeated
 
 ## Demo video
 
-The ready-to-record [video production pack](DEMO_VIDEO.md) contains a 2:50 English voiceover, a concrete first-15-second pain story, the verified live synthetic GPT-5.6 advisor result, a privacy-safe shot list, YouTube metadata, and timed [SRT captions](demo-voiceover.en.srt). It uses only the repository's synthetic data and leaves ten seconds of safety margin below the three-minute limit.
+The [video production pack](DEMO_VIDEO.md) specifies a 2:35 English voiceover, a concrete first-14-second pain story, the verified live synthetic GPT-5.6 advisor result, a privacy-safe shot list, YouTube metadata, and timed [SRT captions](demo-voiceover.en.srt). It uses only the repository's synthetic data and leaves twenty-five seconds of safety margin below the three-minute limit. The local 1080p render is complete; public YouTube upload remains a user action.
 
 ## What's next
 
@@ -106,7 +108,7 @@ The [OpenAI Build Week page](https://openai.devpost.com/) currently requires a w
 - [x] Codex/GPT-5.6 contribution and human decisions documented.
 - [x] English voiceover script, timed captions, and privacy-safe shot list prepared.
 - [x] Publish repository: https://github.com/shihchengwei-lab/codex-metabolism
-- [ ] Record and upload a public YouTube video shorter than three minutes with audio.
+- [ ] Upload the rendered video to public YouTube and add its URL.
 - [ ] Obtain and enter the `/feedback` Codex Session ID.
 - [ ] Create and submit the Devpost project form.
 

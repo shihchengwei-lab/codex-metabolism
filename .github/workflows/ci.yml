@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install build frontend
+        run: python -m pip install build==1.5.1
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Run closed-loop demo
+        run: python examples/run_closed_loop_demo.py
+
+      - name: Run cross-layer friction demo
+        run: python examples/run_friction_cases_demo.py
+
+      - name: Run imperfect-evidence demo
+        run: python examples/run_messy_evidence_demo.py
+
+      - name: Run detector boundary evaluation
+        run: python examples/run_detector_evaluation.py
+
+      - name: Build distribution artifacts
+        run: python -m build
