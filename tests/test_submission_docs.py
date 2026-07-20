@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import struct
 import unittest
 from pathlib import Path
 
@@ -20,6 +21,32 @@ def _seconds(timestamp: str) -> float:
 
 
 class SubmissionDocsTests(unittest.TestCase):
+    def test_devpost_loop_visual_is_cover_ready(self) -> None:
+        svg_path = ROOT / "docs" / "assets" / "metabolism-loop.svg"
+        png_path = ROOT / "docs" / "assets" / "metabolism-loop.png"
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+
+        self.assertTrue(svg_path.is_file())
+        self.assertTrue(png_path.is_file())
+        svg = svg_path.read_text(encoding="utf-8")
+        for required in (
+            'width="1600" height="900" viewBox="0 0 1600 900"',
+            "REPEATED FRICTION",
+            "STAGE THE SMALLEST FIX",
+            "HUMAN APPROVAL",
+            "LATER SESSIONS VALIDATE",
+            "KEEP · REPAIR ·",
+            "ROLLBACK · ARCHIVE",
+            "NEXT CODEX SESSIONS",
+        ):
+            self.assertIn(required, svg)
+        self.assertNotIn("Legacy Cleanup", svg)
+        self.assertIn("assets/metabolism-loop.png", devpost)
+
+        header = png_path.read_bytes()[:24]
+        self.assertEqual(header[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(struct.unpack(">II", header[16:24]), (1600, 900))
+
     def test_readmes_keep_the_judge_path_bounded_and_nonduplicative(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")

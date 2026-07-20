@@ -10,6 +10,12 @@
 - **Demo video:** `[USER ACTION: add public YouTube URL]`
 - **Primary `/feedback` Session ID:** `[USER ACTION: run /feedback in the primary build thread]`
 
+## Devpost cover image
+
+![Codex Metabolism closed loop: observe friction, stage the smallest fix, validate with later sessions, and metabolize the result](assets/metabolism-loop.png)
+
+Editable source: [`assets/metabolism-loop.svg`](assets/metabolism-loop.svg). Use this as the first Devpost image; the more detailed judge-demo screenshot can follow it.
+
 ## Inspiration
 
 Our demo begins with a concrete failure: two Codex sessions repeat the same failed deployment and the same user correction, while old rules and an unused skill remain in the environment indefinitely. Coding agents readily accumulate rules, memories, and skills, but accumulation is not improvement. A repeated failure may be better solved by a test, hook, script, installed plugin, or existing open-source tool. We wanted Codex to maintain a finite and auditable collaboration environment: grow useful structure, repair what still causes friction, and remove what no longer earns its cost.
