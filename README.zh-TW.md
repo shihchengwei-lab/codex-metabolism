@@ -2,6 +2,37 @@
 
 Codex Metabolism 是 Codex 的「AI 協作代謝層」：從近期 session 找出反覆摩擦，先找既有解法，再建立或採用最小介入；之後用新的 session 評估它，最後保留、修補、回滾或剪枝。
 
+[English](README.md) · OpenAI Build Week 組別：**Developer Tools**
+
+## 評審 60 秒快速入口
+
+需要 Python 3.11 以上。不必安裝 package，不需要 API key、Codex 登入或任何私人 session。
+
+```bash
+git clone https://github.com/shihchengwei-lab/codex-metabolism.git
+cd codex-metabolism
+python examples/run_closed_loop_demo.py
+```
+
+兩代閉環成功時會看到：
+
+```text
+First review: CREATE HARNESS + PATCH RULE
+Second review: KEEP HARNESS (VALIDATED)
+```
+
+這個命令只把 synthetic fixtures 複製到隔離的暫存目錄，不讀取或修改真實 Codex session、skills、hooks 或 `AGENTS.md`。
+
+![Codex Metabolism 評審 demo：零安裝命令完成觀察、採用、評估與剪枝閉環](docs/assets/judge-demo.png)
+
+## Codex、GPT-5.6 與人的分工
+
+- **Codex + GPT-5.6：**檢查真實 JSONL 變體、區分證據與推論、先找外部既有工具、為每個 implementation slice 先寫失敗測試，並完成回執、後續評估與回滾閉環。
+- **人類決策：**把代謝範圍從 skill 擴到機械層與工具、機械解優先、建立前先爬梯、managed rules 有上限、保留 human-owned `AGENTS.md`，且所有 mutation 都要明確批准。
+- **runtime 邊界：**公開 deterministic demo 不呼叫模型；選配的 `--advisor codex` 才會透過既有 Codex 登入取得 GPT-5.6 第二意見，而且不能越過 deterministic safety gates。
+
+主要開發 thread 的 `/feedback` Session ID 會直接填入 Devpost，不公開在 repo。英文影片腳本、字幕與隱私安全拍攝清單見 [`docs/DEMO_VIDEO.md`](docs/DEMO_VIDEO.md)。
+
 它不更新模型參數，而是維護 Codex 周圍四層程序性環境：
 
 - `HARNESS`：hooks、測試、scripts、config、權限等機械層。
@@ -153,5 +184,10 @@ Codex Metabolism 不會自動下載、執行、安裝、停用或刪除外部工
 - skill 與 `AGENTS.md` patch 都有 hash gate。
 - skill 退休只搬到 archive，不刪除。
 - 選配 `--advisor codex` 只提供 GPT-5.6 第二意見，不能越過機械層優先與 adoption ladder。
+
+## 支援平台
+
+- **Windows、Python 3.12：**已在目前 checkout 與公開 repo 的乾淨 clone 驗證。
+- **macOS/Linux、Python 3.11+：**依 standard-library-only 設計，專案團隊尚未實機驗證。
 
 完整技術說明、限制、外部工具分工與測試範圍請見 [README.md](README.md)。

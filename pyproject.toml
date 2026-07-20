@@ -19,6 +19,10 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+Homepage = "https://github.com/shihchengwei-lab/codex-metabolism"
+Repository = "https://github.com/shihchengwei-lab/codex-metabolism"
+
 [project.scripts]
 codex-metabolism = "codex_metabolism.cli:main"
 
