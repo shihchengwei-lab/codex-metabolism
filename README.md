@@ -41,6 +41,49 @@ The command copies synthetic fixtures into an isolated retained temporary direct
 
 [Editable SVG source](docs/assets/judge-demo.svg)
 
+## Two more real-world friction patterns
+
+The deployment story is deliberately small enough for a three-minute demo, but command order is not the product boundary. This secondary zero-install replay covers two recurring collaboration corrections. The public inputs are **anonymized synthetic replays**, not exported private sessions.
+
+```bash
+python examples/run_friction_cases_demo.py
+```
+
+Expected result:
+
+```text
+Existing-tool friction: PATCH TOOL -> tobitege/codlogs
+Visual-proof friction: PATCH SKILL -> ui-verification
+```
+
+1. **Existing tool before reinvention:** Codex starts building another session explorer. The user redirects it to the already reviewed `codlogs` project. Metabolism climbs the adoption ladder and stages a `TOOL` adoption plan rather than another implementation.
+2. **Tests are not visual proof:** Codex reports a dashboard complete after tests pass without inspecting the rendered UI. The same correction recurs, so Metabolism proposes patching the installed `$ui-verification` workflow with screenshot evidence.
+
+Neither case is a command-order rule: both are repeated failure → correction → verified recovery patterns, routed to the existing intervention that best matches the evidence. The command retains an isolated temporary directory so judges can inspect the four synthetic JSONL sessions, `decisions.json`, evidence excerpts, and staged proposals.
+
+## Imperfect-data pressure test
+
+The golden demos above prove reproducibility, but their evidence is intentionally clean. This separate, hand-authored synthetic challenge tests the more important failure mode: whether noisy evidence makes the system overreact.
+
+```bash
+python examples/run_messy_evidence_demo.py
+```
+
+Expected result:
+
+```text
+Messy evidence: 1 decision, 2 abstentions
+Actioned: PATCH TOOL -> tobitege/codlogs
+Abstained: publish package -> only 1 verified recovery session
+Abstained: review flaky tests -> repeated failures but no verified recovery path
+Coverage warning: 1 malformed JSONL line; skill invocation evidence is partial and lifecycle evidence is incomplete
+Unsafe retirement decisions: 0
+```
+
+The six-session fixture mixes differently worded corrections, unrelated successful commands, a one-off recovery, repeated failures without same-session recovery, a success in the wrong session, one malformed JSONL line, a high-star catalog distractor, and an old skill backed by an incomplete lifecycle report. Only the pattern with two verified recovery sessions crosses the action threshold. The popular-but-weak catalog match loses to the more relevant reviewed tool, and incomplete coverage cannot become a retirement proposal.
+
+`ABSTAIN` is not smuggled in as a fifth decision type: these are cases for which the core emits no decision. The retained `challenge-results.json` makes those non-actions and their observed counts inspectable. This synthetic challenge **does not claim semantic clustering** or real-world outcome validation; recurring commands still use normalized exact signatures. Its narrower claim is testable: imperfect input produces one supported action and conservative non-action everywhere else.
+
 ## What makes it different
 
 A memory store decides what to remember. A skill generator drafts reusable workflows. A session dashboard explains what happened. **Codex Metabolism manages the lifecycle of the entire intervention portfolio.**
