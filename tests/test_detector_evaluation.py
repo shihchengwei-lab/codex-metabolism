@@ -23,21 +23,21 @@ class DetectorEvaluationTests(unittest.TestCase):
             result = json.loads(
                 (output / "detector-evaluation.json").read_text(encoding="utf-8")
             )
-            self.assertEqual(result["summary"]["case_count"], 24)
+            self.assertEqual(result["summary"]["case_count"], 27)
             self.assertEqual(result["summary"]["labeled_positive_count"], 16)
-            self.assertEqual(result["summary"]["labeled_negative_count"], 8)
+            self.assertEqual(result["summary"]["labeled_negative_count"], 11)
             self.assertEqual(
                 result["confusion_matrix"],
                 {
                     "true_positive": 8,
                     "false_positive": 0,
                     "false_negative": 8,
-                    "true_negative": 8,
+                    "true_negative": 11,
                 },
             )
             self.assertEqual(result["metrics"]["precision"], 1.0)
             self.assertEqual(result["metrics"]["recall"], 0.5)
-            self.assertEqual(result["metrics"]["abstention_rate"], 2 / 3)
+            self.assertEqual(result["metrics"]["abstention_rate"], 19 / 27)
             self.assertTrue(result["methodology"]["synthetic"])
             self.assertIn("not a real-world quality benchmark", result["methodology"]["claim"])
 
@@ -59,8 +59,21 @@ class DetectorEvaluationTests(unittest.TestCase):
                     "shell-variant",
                 },
             )
+            linguistic_negatives = {
+                item["id"]: item["observed_detected"]
+                for item in result["cases"]
+                if item["id"].startswith("incidental-")
+            }
+            self.assertEqual(
+                linguistic_negatives,
+                {
+                    "incidental-english-should": False,
+                    "incidental-english-no": False,
+                    "incidental-traditional-chinese-marker": False,
+                },
+            )
             rendered = stdout.getvalue()
-            self.assertIn("Detector boundary: 24 cases", rendered)
+            self.assertIn("Detector boundary: 27 cases", rendered)
             self.assertIn("Precision: 1.000", rendered)
             self.assertIn("Recall: 0.500", rendered)
             self.assertIn("False positives: 0", rendered)

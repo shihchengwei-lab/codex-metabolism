@@ -317,9 +317,42 @@ def _cases() -> list[dict[str, Any]]:
                 ],
             ],
         },
+        _pair(
+            "incidental-english-should",
+            category="negative",
+            expected_detected=False,
+            commands=("pytest -q", "pytest -q"),
+            corrections=(
+                "The summary should include elapsed time.",
+                "The report should retain the existing heading.",
+            ),
+            note="An ordinary status message containing 'should' is not an explicit correction.",
+        ),
+        _pair(
+            "incidental-english-no",
+            category="negative",
+            expected_detected=False,
+            commands=("git status --short", "git status --short"),
+            corrections=(
+                "No files were changed by this read-only check.",
+                "No credentials were included in the output.",
+            ),
+            note="A sentence beginning with 'No' plus a noun is not an explicit correction.",
+        ),
+        _pair(
+            "incidental-traditional-chinese-marker",
+            category="negative",
+            expected_detected=False,
+            commands=("python -m build", "python -m build"),
+            corrections=(
+                "我們先記錄這次耗時，稍後再比較。",
+                "摘要應該包含執行時間供參考。",
+            ),
+            note="Weak Traditional Chinese words such as 先 or 應該 do not prove a correction.",
+        ),
     ]
-    if len(cases) != 24:
-        raise RuntimeError(f"detector evaluation must contain 24 cases, observed {len(cases)}")
+    if len(cases) != 27:
+        raise RuntimeError(f"detector evaluation must contain 27 cases, observed {len(cases)}")
     return cases
 
 

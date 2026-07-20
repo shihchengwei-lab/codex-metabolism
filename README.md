@@ -46,7 +46,7 @@ The command uses isolated synthetic fixtures and prints the retained artifact pa
 | Closed-loop replay | command above | first proposal, explicit approval in an isolated copy, later validation, duplicate suppression |
 | Cross-layer replay | `python examples/run_friction_cases_demo.py` | existing tool and contextual skill paths—not only command-order rules |
 | Imperfect evidence | `python examples/run_messy_evidence_demo.py` | action once, abstain twice, expose parser coverage, block unsafe retirement |
-| Detector boundary | `python examples/run_detector_evaluation.py` | 24 labeled synthetic cases: precision `1.000`, recall `0.500`, zero false positives |
+| Detector boundary | `python examples/run_detector_evaluation.py` | 27 labeled synthetic cases: precision `1.000`, recall `0.500`, zero false positives |
 
 [Detector boundary evaluation](docs/EVALUATION.md) · [Devpost draft](docs/DEVPOST.md) · [Video production pack](docs/DEMO_VIDEO.md)
 
@@ -72,6 +72,8 @@ Unsafe retirement decisions: 0
 ```
 
 It mixes wording changes, unrelated successes, incomplete recovery, malformed JSONL, a catalog distractor, and incomplete lifecycle evidence. It **does not claim semantic clustering**; unsupported cases produce no decision.
+
+The replay also writes `friction-evidence.csv`: one decision and two explicit abstentions, with deterministic references and coverage fields but no raw prompts, evidence summaries, session IDs, or local paths. In an ordinary review, `--export-evidence` exports emitted decisions only; this challenge replay passes its already-computed abstentions to the exporter, which does not infer a fifth decision type.
 
 ## What makes it different
 
@@ -135,10 +137,10 @@ The deterministic judge demo intentionally makes no model call. The optional adv
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -e .
-codex-metabolism review --days 7 --search-oss
+codex-metabolism review --days 7 --search-oss --export-evidence friction-evidence.csv
 ```
 
-On macOS/Linux, activate with `source .venv/bin/activate`. Review scans recent `~/.codex/sessions/`, installed skills, repo assets, and active `AGENTS.md` scopes. It writes proposals only under `.codex-metabolism/`; reuse that directory so `interventions.jsonl` can connect approved changes to later evidence.
+On macOS/Linux, activate with `source .venv/bin/activate`. Review scans recent `~/.codex/sessions/`, installed skills, repo assets, and active `AGENTS.md` scopes. It writes proposals only under `.codex-metabolism/`; reuse that directory so `interventions.jsonl` can connect approved changes to later evidence. `--export-evidence` is optional and exports only emitted decisions as structured, anonymized review evidence.
 
 ## Keep the loop running — opt in
 

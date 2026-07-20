@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 import io
 import tempfile
@@ -70,6 +71,53 @@ slack@openai-curated         not installed
             self.assertEqual(code, 0)
             self.assertTrue((output / "report.md").is_file())
             self.assertTrue((output / "decisions.json").is_file())
+
+    def test_review_can_export_privacy_safe_evidence_csv(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home, skills_root = make_deploy_home(root)
+            output = root / "review-output"
+            export_path = root / "friction-evidence.csv"
+            catalog = root / "catalog.json"
+            catalog.write_text(json.dumps([]), encoding="utf-8")
+
+            code = main(
+                [
+                    "review",
+                    "--days",
+                    "7",
+                    "--codex-home",
+                    str(codex_home),
+                    "--skill-root",
+                    str(skills_root),
+                    "--project-root",
+                    str(root),
+                    "--output-dir",
+                    str(output),
+                    "--catalog-file",
+                    str(catalog),
+                    "--no-skillreaper",
+                    "--export-evidence",
+                    str(export_path),
+                    "--now",
+                    NOW.isoformat(),
+                ]
+            )
+
+            self.assertEqual(code, 0)
+            with export_path.open(newline="", encoding="utf-8") as handle:
+                rows = list(csv.DictReader(handle))
+            staged = json.loads((output / "decisions.json").read_text(encoding="utf-8"))
+
+            self.assertEqual(
+                {row["record_id"] for row in rows},
+                {item["id"] for item in staged["decisions"]},
+            )
+            self.assertTrue(all(row["record_type"] == "decision" for row in rows))
+            rendered = export_path.read_text(encoding="utf-8")
+            self.assertNotIn("session-one", rendered)
+            self.assertNotIn("session-two", rendered)
+            self.assertNotIn(str(root), rendered)
 
     def test_review_imports_a_read_only_skillreaper_report(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

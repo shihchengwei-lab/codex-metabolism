@@ -15,6 +15,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from codex_metabolism.decide import decide
+from codex_metabolism.evidence_export import export_evidence_csv
 from codex_metabolism.integrations.skillreaper import parse_skillreaper_report
 from codex_metabolism.models import Observation
 from codex_metabolism.observe import observe
@@ -501,6 +502,12 @@ def run(output_root: Path) -> int:
         json.dumps(result, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    export_evidence_csv(
+        snapshot,
+        decisions,
+        output_root / "friction-evidence.csv",
+        abstentions=abstentions,
+    )
 
     print(
         f"Messy evidence: {len(decisions)} decision, "
@@ -513,6 +520,7 @@ def run(output_root: Path) -> int:
     )
     print(f"Coverage warning: {coverage_warning}")
     print(f"Unsafe retirement decisions: {len(unsafe_retirements)}")
+    print(f"Evidence CSV: {(output_root / 'friction-evidence.csv').resolve()}")
     print(f"Inspect the retained challenge artifacts at: {output_root.resolve()}")
     return 0
 

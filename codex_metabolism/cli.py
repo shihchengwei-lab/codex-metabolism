@@ -21,6 +21,7 @@ from .automation import (
 from .catalog import build_oss_query, search_github
 from .codex_command import build_codex_command
 from .decide import decide
+from .evidence_export import export_evidence_csv
 from .integrations.skillreaper import (
     collect_skillreaper,
     find_skillreaper,
@@ -194,6 +195,9 @@ def _review(args: argparse.Namespace) -> int:
                 decision.metadata["codex_advisor"] = suggestion
                 decision.metadata["advisor_role"] = "non_authoritative"
     output = stage_review(snapshot, decisions, args.output_dir, generated_at=now)
+    if args.export_evidence:
+        exported = export_evidence_csv(snapshot, decisions, args.export_evidence)
+        print(f"Exported structured evidence CSV to {exported}")
     ready = sum(1 for item in decisions if item.readiness == "ready")
     blocked = len(decisions) - ready
     print(
@@ -292,6 +296,14 @@ def _parser() -> argparse.ArgumentParser:
     review.add_argument("--skill-root", type=Path, action="append")
     review.add_argument("--project-root", type=Path, default=Path.cwd())
     review.add_argument("--output-dir", type=Path, default=Path(".codex-metabolism"))
+    review.add_argument(
+        "--export-evidence",
+        type=Path,
+        help=(
+            "Write a deterministic CSV of structured evidence and coverage; "
+            "raw prompts, evidence summaries, session IDs, and paths are excluded"
+        ),
+    )
     review.add_argument(
         "--catalog-file",
         type=Path,
