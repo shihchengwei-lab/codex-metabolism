@@ -20,10 +20,24 @@ def _seconds(timestamp: str) -> float:
 
 
 class SubmissionDocsTests(unittest.TestCase):
-    def test_readme_opens_with_a_concrete_before_and_after(self) -> None:
+    def test_readme_opens_with_the_metabolism_distinction(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
-        heading = "## One failure, before and after"
+        quick_start = readme.index("## Judge quick start")
+        for required in (
+            "Everyone is building agent memory. We built agent metabolism.",
+            "not another memory store, skill generator, or session dashboard",
+            "lifecycle manager for the persistent interventions around Codex",
+            "does not fine-tune or update model weights",
+            "Same Codex, different metabolism.",
+        ):
+            self.assertIn(required, readme)
+            self.assertLess(readme.index(required), quick_start)
+
+    def test_readme_puts_a_concrete_metabolized_failure_before_quick_start(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        heading = "## One failure, metabolized"
         self.assertIn(heading, readme)
         self.assertLess(readme.index(heading), readme.index("## Judge quick start"))
         for required in (
@@ -39,7 +53,7 @@ class SubmissionDocsTests(unittest.TestCase):
 
         heading = "## Judge quick start — under 60 seconds"
         self.assertIn(heading, readme)
-        self.assertLess(readme.index(heading), readme.index("## The closed loop"))
+        self.assertLess(readme.index(heading), readme.index("## The metabolic loop"))
         for required in (
             "python examples/run_closed_loop_demo.py",
             "No installation, API key, Codex login, or personal session data is required.",

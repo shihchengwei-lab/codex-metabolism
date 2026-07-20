@@ -1,16 +1,22 @@
 # Codex Metabolism
 
-> An evidence-driven collaboration metabolism layer for Codex: observe recurring friction, adopt or create the smallest useful intervention, evaluate it on later sessions, and prune what no longer helps.
+> **Everyone is building agent memory. We built agent metabolism.**
 
 [繁體中文](README.zh-TW.md) · OpenAI Build Week track: **Developer Tools**
 
-## One failure, before and after
+**An evidence-driven lifecycle manager for the persistent interventions around Codex.** It turns recurring collaboration friction into the smallest useful change, checks that change against later sessions, and stages its retirement when it stops earning its cost.
+
+Codex setups learn by accumulating rules, skills, hooks, scripts, and tools. That can make them more capable, but it can also create duplicated guidance, stale workflows, and permanent context cost. Codex Metabolism is **not another memory store, skill generator, or session dashboard**. It manages what should be added, where it should live, whether it worked, and whether it still deserves to remain.
+
+It **does not fine-tune or update model weights**. What becomes personal is the inspectable procedural environment around the model: the safeguards, tools, workflows, and bounded guidance supported by a person's real friction. **Same Codex, different metabolism.**
+
+## One failure, metabolized
 
 **Before:** two sessions repeated the same failed `deploy production` command and the same user correction: run `preflight` first. Meanwhile, a useful skill and an `old-unused` skill occupied the same permanent-looking toolbox.
 
-**After review:** stage a `PreToolUse` guard that can prevent the command-order mistake mechanically, keep the used skill, and mark `old-unused` as an archive candidate—never auto-delete it. Nothing touches live state until a person reviews the evidence and approves one decision.
+**After review:** the adoption ladder finds that prose is not the cheapest fix. Codex Metabolism can stage a `PreToolUse` guard that prevents the command-order mistake mechanically, keep the used skill, and mark `old-unused` as an archive candidate—never auto-delete it. Nothing touches live state until a person reviews the evidence and approves one decision.
 
-**After later sessions:** two verified successes validate the guard, its receipt suppresses a duplicate proposal, and the next review returns `KEEP HARNESS (VALIDATED)`. That is metabolism: not more memory, but a measured cycle of adding, testing, and removing collaboration structure.
+**After later sessions:** two verified successes validate the guard, its receipt suppresses a duplicate proposal, and the next review returns `KEEP HARNESS (VALIDATED)`. The result is not simply more memory: repeated friction goes down while stale collaboration structure becomes removable.
 
 ## Judge quick start — under 60 seconds
 
@@ -35,34 +41,28 @@ The command copies synthetic fixtures into an isolated retained temporary direct
 
 [Editable SVG source](docs/assets/judge-demo.svg)
 
-## Who it is for
+## What makes it different
 
-Codex Metabolism is for developers and teams whose Codex setup accumulates rules, skills, hooks, scripts, and tools faster than anyone can evaluate them. It turns repeated collaboration friction into a finite, evidence-backed maintenance loop instead of another ever-growing memory layer.
+A memory store decides what to remember. A skill generator drafts reusable workflows. A session dashboard explains what happened. **Codex Metabolism manages the lifecycle of the entire intervention portfolio.**
 
-## How Codex and GPT-5.6 built this
+It routes each recurring friction signal across four layers instead of assuming every answer is another rule or skill:
 
-### Codex and GPT-5.6 contributions
+| Layer | Use it when | Examples |
+|---|---|---|
+| `HARNESS` | The failure can be prevented mechanically | hooks, tests, scripts, config, permissions |
+| `TOOL` | An existing capability can do the job | installed tools, plugins, CLIs, reviewed open source |
+| `SKILL` | The solution is a reusable contextual workflow | procedures, decision paths, tool sequences |
+| `RULE` | Codex needs durable bounded guidance | the managed region in `AGENTS.md` |
 
-The primary build thread used Codex with GPT-5.6 to inspect real local JSONL variants, separate hard signals from inference, search for existing open-source components before building, write failing tests for each implementation slice, and close the receipt/evaluation/rollback loop. The required `/feedback` Session ID for that thread will be supplied directly in the Devpost submission.
+The lifecycle follows five constraints:
 
-### Human product decisions
+- **Existing before new:** check necessity, Codex built-ins, installed capabilities, repository assets, and the external ecosystem before creating anything.
+- **Mechanical before prose:** prefer an enforceable check over another instruction when both solve the same problem.
+- **Evidence before permanence:** connect each approved intervention to later matching opportunities through a local receipt ledger.
+- **Subtraction is improvement:** keep, repair, roll back, or retire an intervention according to later evidence and context cost.
+- **Humans own live state:** review stages evidence and diffs; one explicit approval is required for each mutation.
 
-The human collaborator chose the product boundaries: expand metabolism beyond skills, prefer mechanical safeguards over more prose, search installed and external tools before creating anything, cap managed rules, preserve human-owned `AGENTS.md` content, use synthetic public data, and require explicit approval at every mutation boundary.
-
-### Runtime boundary
-
-The deterministic judge demo intentionally makes no model call. It proves the closed loop reproducibly with synthetic fixtures. The separate `--advisor codex` option can request a bounded GPT-5.6 second opinion through the user's existing Codex authentication; the verified default is `gpt-5.6-sol`. That advice is non-authoritative and cannot bypass deterministic safety gates.
-
-See [the Devpost submission draft](docs/DEVPOST.md) and [the English video production pack](docs/DEMO_VIDEO.md) for the build story and demo plan.
-
-Codex Metabolism does not update model weights. It maintains the procedural environment around Codex across four intervention layers:
-
-- `HARNESS`: hooks, tests, scripts, config, permissions, and other mechanical safeguards.
-- `TOOL`: installed capabilities, plugins, CLIs, and reviewed open-source projects.
-- `SKILL`: reusable contextual workflows.
-- `RULE`: durable guidance in `AGENTS.md`.
-
-## The closed loop
+## The metabolic loop
 
 ```text
 Codex collaboration sessions
@@ -88,7 +88,35 @@ future sessions -> VALIDATED / INEFFECTIVE / IDLE_CANDIDATE
           +--------------------------> keep / repair / rollback / archive
 ```
 
-An active intervention suppresses a duplicate creation proposal. Two later matching successes can validate it; two later matching failures nominate a patch; at least 28 days and ten later sessions without a matching opportunity can only produce a low-confidence retirement candidate. Silence is never treated as proof of quality.
+An active intervention suppresses duplicate creation. Two later matching successes can validate it; two later matching failures nominate a patch. At least 28 days and ten later sessions without a matching opportunity can produce only a low-confidence retirement candidate. Silence is never treated as proof of quality, and parser failure is never re-labelled as non-use.
+
+The durable product asset is not raw session history. It is an inspectable chain of evidence:
+
+```text
+friction signature -> chosen intervention -> later opportunity -> observed outcome
+```
+
+That chain lets the collaboration environment become more fitted without becoming an opaque personalized model or an ever-growing rule pile.
+
+## Who it is for
+
+Codex Metabolism is for developers and teams whose Codex setup accumulates rules, skills, hooks, scripts, and tools faster than anyone can evaluate them. The strongest fit is a frequent Codex user who has already typed the same correction twice, inherited stale customization, or watched a useful workaround harden into permanent context.
+
+## How Codex and GPT-5.6 built this
+
+### Codex and GPT-5.6 contributions
+
+The primary build thread used Codex with GPT-5.6 to inspect real local JSONL variants, separate hard signals from inference, search for existing open-source components before building, write failing tests for each implementation slice, and close the receipt/evaluation/rollback loop. The required `/feedback` Session ID for that thread will be supplied directly in the Devpost submission.
+
+### Human product decisions
+
+The human collaborator chose the product boundaries: expand metabolism beyond skills, prefer mechanical safeguards over more prose, search installed and external tools before creating anything, cap managed rules, preserve human-owned `AGENTS.md` content, use synthetic public data, and require explicit approval at every mutation boundary.
+
+### Runtime boundary
+
+The deterministic judge demo intentionally makes no model call. It proves the closed loop reproducibly with synthetic fixtures. The separate `--advisor codex` option can request a bounded GPT-5.6 second opinion through the user's existing Codex authentication; the verified default is `gpt-5.6-sol`. That advice is non-authoritative and cannot bypass deterministic safety gates.
+
+See [the Devpost submission draft](docs/DEVPOST.md) and [the English video production pack](docs/DEMO_VIDEO.md) for the build story and demo plan.
 
 ## Public deterministic demo
 
