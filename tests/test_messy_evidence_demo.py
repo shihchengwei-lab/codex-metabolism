@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import io
 import json
 import tempfile
@@ -28,6 +29,10 @@ class MessyEvidenceDemoTests(unittest.TestCase):
             challenge = json.loads(
                 (output / "challenge-results.json").read_text(encoding="utf-8")
             )
+            with (output / "friction-evidence.csv").open(
+                newline="", encoding="utf-8"
+            ) as handle:
+                exported = list(csv.DictReader(handle))
 
             self.assertEqual(len(staged["decisions"]), 1)
             action = staged["decisions"][0]
@@ -79,6 +84,39 @@ class MessyEvidenceDemoTests(unittest.TestCase):
                     for item in staged["decisions"]
                 )
             )
+
+            self.assertEqual(
+                [row["record_type"] for row in exported],
+                ["decision", "abstention", "abstention"],
+            )
+            self.assertEqual(exported[0]["decision"], "PATCH")
+            self.assertRegex(
+                exported[0]["intervention"],
+                r"^TOOL:adopt_external:target-\d{3}$",
+            )
+            self.assertEqual(
+                exported[0]["session_counts"],
+                "failure=2;recovery=2;success_only=unknown",
+            )
+            self.assertEqual(
+                {row["result"] for row in exported[1:]},
+                {
+                    "abstained:only_one_verified_recovery_session",
+                    "abstained:no_verified_recovery_path",
+                },
+            )
+            self.assertTrue(all(row["decision"] == "" for row in exported[1:]))
+            exported_text = (output / "friction-evidence.csv").read_text(
+                encoding="utf-8"
+            )
+            for private_value in (
+                "action-one",
+                "action-two",
+                "single-recovery",
+                "no-recovery-one",
+                "C:/demo/noisy-repo",
+            ):
+                self.assertNotIn(private_value, exported_text)
 
             rendered = stdout.getvalue()
             self.assertIn("Messy evidence: 1 decision, 2 abstentions", rendered)

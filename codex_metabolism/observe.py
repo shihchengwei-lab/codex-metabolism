@@ -25,7 +25,14 @@ from .models import (
 
 
 CORRECTION_RE = re.compile(
-    r"(?i)(?:\b(?:no|wrong|instead|should|first|before|do not|don't)\b|不對|不是|不要|應該|先|改成|修正)"
+    r"(?:"
+    r"^\s*no\s*(?:[.!,:;?\-—]|$)"
+    r"|^\s*wrong\b"
+    r"|^\s*instead\s*[.!,:;?\-—]"
+    r"|^\s*(?:please\s+)?(?:do\s+not|don't)\b"
+    r"|^\s*(?:不對|不要|改成|修正|請(?:改成|修正))"
+    r")",
+    re.IGNORECASE,
 )
 SKILL_MENTION_RE = re.compile(r"\$([a-z0-9][a-z0-9_-]{1,80})", re.IGNORECASE)
 EXIT_CODE_RE = re.compile(r"(?i)exit\s+code\s*:\s*(-?\d+)")

@@ -1,4 +1,4 @@
-# OpenAI Build Week submission draft
+# OpenAI Build Week submission
 
 ## Submission fields
 
@@ -7,8 +7,8 @@
 - **Tagline:** Turn repeated Codex mistakes into tested safeguards—and retire what stops helping.
 - **One sentence:** Codex Metabolism finds recurring friction in Codex sessions, stages the smallest existing or new intervention across hooks, tools, skills, and bounded rules, then uses later sessions to keep, repair, roll back, or archive it.
 - **Repository:** https://github.com/shihchengwei-lab/codex-metabolism
-- **Demo video:** `[USER ACTION: add public YouTube URL]`
-- **Primary `/feedback` Session ID:** `[USER ACTION: run /feedback in the primary build thread]`
+- **Demo video:** https://youtu.be/egZhaFeDkRE
+- **Primary `/feedback` Session ID:** Entered in Devpost's organizer-only field; intentionally not repeated in this public repository.
 
 ## Devpost cover image
 
@@ -39,9 +39,9 @@ The operational loop no longer depends on remembering a weekly command. An opt-i
 
 The secondary public replay, `python examples/run_friction_cases_demo.py`, demonstrates that the router is not limited to deployment sequencing. One repeated correction adopts the reviewed `codlogs` tool instead of rebuilding a session explorer; another patches an existing `$ui-verification` skill after tests passed without rendered UI evidence. Neither correction is a command-order rule. The four public JSONL sessions are anonymized synthetic replays and the isolated run does not inspect the user's configured plugins.
 
-Because clean fixtures can overstate robustness, `python examples/run_messy_evidence_demo.py` adds a six-session imperfect-data pressure test. Differently worded corrections, unrelated successes, a one-off recovery, repeated failures without verified recovery, a success in the wrong session, malformed JSONL, a high-star catalog distractor, and incomplete lifecycle evidence produce one evidence-backed decision, two explicit abstentions, one parser coverage warning, and zero unsafe retirement decisions. The non-actions are written to an inspectable challenge summary without adding an unsupported fifth decision type. This remains a synthetic stress fixture, not a real-world quality benchmark, and it does not claim semantic clustering across paraphrased commands.
+Because clean fixtures can overstate robustness, `python examples/run_messy_evidence_demo.py` adds a six-session imperfect-data pressure test. Differently worded corrections, unrelated successes, a one-off recovery, repeated failures without verified recovery, a success in the wrong session, malformed JSONL, a high-star catalog distractor, and incomplete lifecycle evidence produce one evidence-backed decision, two explicit abstentions, one parser coverage warning, and zero unsafe retirement decisions. The non-actions are written to an inspectable challenge summary without adding an unsupported fifth decision type. Its CSV receives those already-computed abstentions explicitly; an ordinary `--export-evidence` review exports emitted decisions only. This remains a synthetic stress fixture, not a real-world quality benchmark, and it does not claim semantic clustering across paraphrased commands.
 
-A separate 24-case detector boundary evaluation publishes the limitation instead of hiding it: eight supported positives are detected, eight semantic or parameter variants are missed, all eight negatives abstain, and the resulting synthetic precision/recall are 1.000/0.500 with zero false positives. It is explicitly not presented as real-user impact or causal validation.
+A separate 27-case detector boundary evaluation publishes the limitation instead of hiding it: eight supported positives are detected, eight semantic or parameter variants are missed, all eleven negatives abstain, and the resulting synthetic precision/recall are 1.000/0.500 with zero false positives. Three linguistic negatives verify that ordinary uses of `should`, `No`, `先`, and `應該` do not become invented corrections. It is explicitly not presented as real-user impact or causal validation. The public video shows the current 27-case suite.
 
 `AGENTS.md` has a mixed-ownership boundary. The entire active document is evaluated, but only bytes between an existing valid `codex-metabolism:managed-start` / `managed-end` marker pair can be changed after explicit approval. Everything else remains recommendation-only. Full-file hashes, a ten-rule managed cap, and rollback protect the human-owned file.
 
@@ -93,7 +93,7 @@ The slime-mold analogy proved useful. The system grows a path only when repeated
 
 ## Demo video
 
-The [video production pack](DEMO_VIDEO.md) specifies a 2:35 English voiceover, a concrete first-14-second pain story, the verified live synthetic GPT-5.6 advisor result, a privacy-safe shot list, YouTube metadata, and timed [SRT captions](demo-voiceover.en.srt). It uses only the repository's synthetic data and leaves twenty-five seconds of safety margin below the three-minute limit. The local 1080p render is complete; public YouTube upload remains a user action.
+The [public YouTube demo](https://youtu.be/egZhaFeDkRE) uses the 2:40 English voiceover, concrete first-14-second pain story, extended four-phase slime-mold sequence, verified live synthetic GPT-5.6 advisor result, and privacy-safe shot list specified in the [video production pack](DEMO_VIDEO.md). Timed [SRT captions](demo-voiceover.en.srt) are retained in the repository, and only synthetic data appears in the video.
 
 ## What's next
 
@@ -114,8 +114,8 @@ The [OpenAI Build Week page](https://openai.devpost.com/) currently requires a w
 - [x] Codex/GPT-5.6 contribution and human decisions documented.
 - [x] English voiceover script, timed captions, and privacy-safe shot list prepared.
 - [x] Publish repository: https://github.com/shihchengwei-lab/codex-metabolism
-- [ ] Upload the rendered video to public YouTube and add its URL.
-- [ ] Obtain and enter the `/feedback` Codex Session ID.
-- [ ] Create and submit the Devpost project form.
+- [x] Upload the rendered video to public YouTube: https://youtu.be/egZhaFeDkRE
+- [x] Enter the `/feedback` Codex Session ID in the organizer-only field.
+- [x] Submit the Devpost project form.
 
-The listed deadline is **July 21, 2026 at 5:00 PM Pacific Time**. Confirm it again on Devpost before final submission.
+Submission status was confirmed on Devpost on **July 20, 2026**: `Submitted`, with `5/5 steps done`. The listed deadline remains **July 21, 2026 at 5:00 PM Pacific Time**.

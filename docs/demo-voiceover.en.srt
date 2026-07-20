@@ -1,54 +1,54 @@
 1
 00:00:00,000 --> 00:00:14,000
-Here is the pain: two Codex sessions repeat the same failed deployment and correction.
-Rules and unused skills accumulate, but nothing proves what should remain.
+Codex hits the same deployment mistake in two different sessions. Each time, we add another rule, skill, or tool.
+The environment grows. The friction returns.
 
 2
-00:00:14,000 --> 00:00:27,000
-Agent memory asks what to add. Slime mold tests paths through use:
-reinforce what works, withdraw what does not. Codex Metabolism applies that logic to collaboration.
+00:00:14,000 --> 00:00:32,000
+Most agent improvement systems are built for addition. Codex Metabolism asks what earns the right to remain.
+Like slime mold, it explores candidate paths; later use brightens the path that works, while unsupported branches fade.
 
 3
-00:00:27,000 --> 00:00:40,000
-This demo uses synthetic sessions. A friction candidate requires failure, a user correction,
-the same command later succeeding, and the pattern repeating across two sessions.
+00:00:32,000 --> 00:00:45,000
+This is not a self-improving model. It is a human-approved lifecycle around Codex: synthetic sessions expose friction,
+and later sessions decide whether the fix is kept, repaired, or archived.
 
 4
-00:00:40,000 --> 00:00:54,000
-One zero-install command stages CREATE HARNESS, PATCH RULE, KEEP SKILL, and RETIRE CANDIDATE.
-Review writes only proposals; it never changes the live environment.
+00:00:45,000 --> 00:00:59,000
+Failure, explicit correction, and same-command recovery repeat across two sessions.
+One zero-install review stages four decisions and changes nothing live.
 
 5
-00:00:54,000 --> 00:01:09,000
-Before creating anything, it climbs five rungs: necessity, Codex built-ins, installed capabilities,
-repository assets, and reviewed open-source tools. If a rung is unchecked, creation is blocked.
+00:00:59,000 --> 00:01:14,000
+Before creating anything, it checks necessity, Codex built-ins, installed capabilities, repository assets,
+and reviewed open source. If an existing path works, creation is blocked.
 
 6
-00:01:09,000 --> 00:01:23,000
-The approved guard permits only the exact reviewed preflight-and-deploy sequence.
-Echoes, OR operators, quoted text, subshells, and reordered commands are denied. Every change remains reversible.
+00:01:14,000 --> 00:01:28,000
+For this friction, the smallest reliable fix is mechanical: require the exact reviewed preflight-and-deploy sequence.
+Spoofs are denied. A person reviews the evidence and diff before activation.
 
 7
-00:01:23,000 --> 00:01:38,000
-After two later successful sessions, the next review returns KEEP HARNESS, VALIDATED.
-An active receipt suppresses duplicate fixes, so the tool does not become another source of clutter.
+00:01:28,000 --> 00:01:43,000
+Two later sessions succeed. The next review returns KEEP HARNESS, VALIDATED,
+and suppresses the duplicate proposal, so the same fix does not accumulate again.
 
 8
-00:01:38,000 --> 00:01:53,000
-The same loop keeps useful skills and marks an unused one as a retirement candidate only with complete lifecycle evidence.
-A person approves archive or restore; nothing is silently deleted.
+00:01:43,000 --> 00:01:58,000
+Other interventions do not get a free pass. Useful skills stay; an unused skill becomes only a retirement candidate.
+Archive and restore remain human decisions. Nothing is silently deleted.
 
 9
-00:01:53,000 --> 00:02:06,000
-Across twenty-four synthetic cases: zero false positives, fifty percent recall.
-The honest boundary is high precision, deliberate abstention, and no semantic clustering yet.
+00:01:58,000 --> 00:02:11,000
+Across twenty-seven synthetic cases: zero false positives and fifty percent recall.
+This is a boundary test—not proof of magical learning or real-world impact.
 
 10
-00:02:06,000 --> 00:02:27,000
-We built the core with Codex and GPT-5.6, using failing tests and cross-platform CI. In an optional live advisor run,
-model gpt-5.6-sol agreed on CREATE HARNESS, challenged PATCH RULE with KEEP RULE, and could not override deterministic gates.
+00:02:11,000 --> 00:02:32,000
+We built and tested the system with Codex and GPT-5.6. In an optional synthetic run, model gpt-5.6-sol agreed on CREATE HARNESS,
+challenged PATCH RULE with KEEP RULE, but deterministic gates and human approval remain authoritative.
 
 11
-00:02:27,000 --> 00:02:35,000
-Codex Metabolism: not just better skills.
-Validate what works. Forget the rest.
+00:02:32,000 --> 00:02:40,000
+Most tools help agents remember more.
+Codex Metabolism helps decide what deserves to remain.

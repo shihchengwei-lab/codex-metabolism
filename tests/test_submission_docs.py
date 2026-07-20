@@ -94,12 +94,13 @@ class SubmissionDocsTests(unittest.TestCase):
 
         for required in (
             "python examples/run_detector_evaluation.py",
-            "24",
+            "27",
+            "11",
             "8",
             "0",
             "1.000",
             "0.500",
-            "0.667",
+            "0.704",
             "path variation",
             "argument variation",
             "command aliases",
@@ -109,6 +110,8 @@ class SubmissionDocsTests(unittest.TestCase):
             "failure → correction → same-command success",
             "two different sessions",
             "normal retry",
+            "linguistic negatives",
+            "sentence-initial `No`",
             "false allow",
         ):
             self.assertIn(required, content)
@@ -118,7 +121,8 @@ class SubmissionDocsTests(unittest.TestCase):
         devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
         self.assertIn("[Detector boundary evaluation](docs/EVALUATION.md)", readme)
         self.assertIn("[Detector 邊界評估](docs/EVALUATION.md)", traditional)
-        self.assertIn("24-case detector boundary evaluation", devpost)
+        self.assertIn("27-case detector boundary evaluation", devpost)
+        self.assertIn("public video shows the current 27-case suite", devpost)
 
     def test_readme_opens_with_the_metabolism_distinction(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -316,15 +320,22 @@ class SubmissionDocsTests(unittest.TestCase):
         ):
             self.assertIn(required, subtitle_text)
         for required in (
-            "Agent memory asks what to add.",
-            "Slime mold tests paths through use",
-            "reinforce what works, withdraw what does not",
-            "not just better skills",
+            "The environment grows. The friction returns.",
+            "Most agent improvement systems are built for addition",
+            "what earns the right to remain",
+            "This is not a self-improving model.",
+            "human-approved lifecycle around Codex",
+            "twenty-seven synthetic cases",
+            "not proof of magical learning or real-world impact",
+            "what deserves to remain",
+            "Like slime mold",
+            "brightens the path that works",
+            "unsupported branches fade",
         ):
             self.assertIn(required, subtitle_text)
         self.assertLess(
-            subtitle_text.index("Slime mold tests paths through use"),
-            subtitle_text.index("We built the core"),
+            subtitle_text.index("Most agent improvement systems are built for addition"),
+            subtitle_text.index("We built and tested the system"),
         )
         self.assertIn("privacy", guide_text.lower())
         for required in (
@@ -336,21 +347,36 @@ class SubmissionDocsTests(unittest.TestCase):
             "abstract slime-mold network",
             "future-session evidence",
             "fades unused branches",
-            "2:35",
+            "2:40",
         ):
             self.assertIn(required, guide_text)
-        self.assertIn("2:35 English voiceover", devpost_text)
+        self.assertIn("2:40 English voiceover", devpost_text)
+        self.assertNotIn("2:35 English voiceover", devpost_text)
         self.assertNotIn("2:50 English voiceover", devpost_text)
 
-    def test_devpost_checklist_records_the_public_repository_but_not_user_actions(self) -> None:
+    def test_devpost_checklist_records_the_completed_submission_without_public_feedback_id(self) -> None:
         devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
 
         self.assertIn(
             "- [x] Publish repository: https://github.com/shihchengwei-lab/codex-metabolism",
             devpost,
         )
-        self.assertIn("- [ ] Upload the rendered video to public YouTube", devpost)
-        self.assertIn("- [ ] Obtain and enter the `/feedback` Codex Session ID", devpost)
+        self.assertIn(
+            "- [x] Upload the rendered video to public YouTube: https://youtu.be/egZhaFeDkRE",
+            devpost,
+        )
+        self.assertNotIn("24sUR7Gpe68", devpost)
+        self.assertIn(
+            "- [x] Enter the `/feedback` Codex Session ID in the organizer-only field.",
+            devpost,
+        )
+        self.assertIn("- [x] Submit the Devpost project form.", devpost)
+        self.assertNotIn("[USER ACTION", devpost)
+        self.assertNotIn("- [ ]", devpost)
+        self.assertNotRegex(
+            devpost,
+            r"Primary `/feedback` Session ID:\*\*\s*`?[0-9a-f]{8}-[0-9a-f-]{27,}",
+        )
 
     def test_devpost_names_the_non_command_order_replay(self) -> None:
         devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
@@ -372,8 +398,16 @@ class SubmissionDocsTests(unittest.TestCase):
             "two explicit abstentions",
             "one parser coverage warning",
             "zero unsafe retirement decisions",
+            "ordinary `--export-evidence` review exports emitted decisions only",
         ):
             self.assertIn(required, devpost)
+
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
+        self.assertIn("ordinary review", readme)
+        self.assertIn("exports emitted decisions only", readme)
+        self.assertIn("一般 review", traditional)
+        self.assertIn("只輸出已產生的 decisions", traditional)
 
     def test_source_distribution_includes_submission_assets(self) -> None:
         manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")

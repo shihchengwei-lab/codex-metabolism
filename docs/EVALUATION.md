@@ -13,11 +13,11 @@ python examples/run_detector_evaluation.py
 Expected summary:
 
 ```text
-Detector boundary: 24 cases
+Detector boundary: 27 cases
 Precision: 1.000
 Recall: 0.500
 False positives: 0
-Abstentions: 16
+Abstentions: 19
 ```
 
 The retained `detector-evaluation.json` contains every label, observed result, category, and limitation.
@@ -26,16 +26,16 @@ The retained `detector-evaluation.json` contains every label, observed result, c
 
 | Measure | Result |
 |---|---:|
-| Author-defined cases | 24 |
+| Author-defined cases | 27 |
 | Labeled recurring-friction positives | 16 |
-| Labeled negatives | 8 |
+| Labeled negatives | 11 |
 | True positives | 8 |
 | False positives | 0 |
 | False negatives | 8 |
-| True negatives | 8 |
+| True negatives | 11 |
 | Precision | 1.000 |
 | Recall | 0.500 |
-| Abstention rate | 0.667 |
+| Abstention rate | 0.704 |
 
 This is a deterministic **synthetic** boundary evaluation, **not a real-world quality benchmark**, user study, or claim that an intervention caused later improvement. Labels are author-defined expectations fixed before detector execution.
 
@@ -64,7 +64,7 @@ Eight deliberately labeled positives remain known misses:
 - flag-order variation;
 - shell invocation variation.
 
-Eight negatives correctly abstain: normal retry, only one corrected session, correction before failure, correction after success, a single session, cross-session failure/success, failures without recovery, and an unrelated successful command.
+Eleven negatives correctly abstain. Eight test structural boundaries: normal retry, only one corrected session, correction before failure, correction after success, a single session, cross-session failure/success, failures without recovery, and an unrelated successful command. Three linguistic negatives place ordinary messages containing `should`, sentence-initial `No` followed by a noun, or weak Traditional Chinese words such as `先` / `應該` between failure and success. Those words alone no longer count as corrections.
 
 ## Guard adversarial check
 
