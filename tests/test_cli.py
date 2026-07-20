@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import io
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -256,6 +258,145 @@ slack@openai-curated         not installed
             self.assertEqual(code, 0)
             self.assertEqual(artifact.read_text(encoding="utf-8"), "already installed")
             self.assertTrue((output / "interventions.jsonl").is_file())
+
+    def test_enable_command_is_opt_in_and_keeps_background_network_access_off(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            output = root / ".codex-metabolism"
+            config_path = output / "automation" / "config.json"
+
+            with patch(
+                "codex_metabolism.cli.enable_automation",
+                return_value=config_path,
+            ) as enable:
+                code = main(
+                    [
+                        "enable",
+                        "--project-root",
+                        str(root),
+                        "--output-dir",
+                        str(output),
+                        "--codex-home",
+                        str(root / ".codex"),
+                        "--skill-root",
+                        str(root / ".agents" / "skills"),
+                        "--every-days",
+                        "7",
+                        "--after-sessions",
+                        "10",
+                        "--no-skillreaper",
+                        "--now",
+                        NOW.isoformat(),
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            config = enable.call_args.args[0]
+            self.assertFalse(config["search_oss"])
+            self.assertNotIn("--search-oss", config["review_argv"])
+            self.assertEqual(config["after_sessions"], 10)
+            self.assertEqual(config["every_days"], 7)
+
+    def test_internal_scheduler_entrypoint_has_readable_help(self) -> None:
+        stream = io.StringIO()
+
+        with redirect_stdout(stream), self.assertRaises(SystemExit) as exit_status:
+            main(["--help"])
+
+        self.assertEqual(exit_status.exception.code, 0)
+        rendered = stream.getvalue()
+        self.assertNotIn("==SUPPRESS==", rendered)
+        self.assertIn("Internal stage-only scheduler entrypoint", rendered)
+
+    def test_status_command_prints_heartbeat_and_is_nonzero_when_unhealthy(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / ".codex-metabolism"
+            status = {
+                "enabled": True,
+                "registered": False,
+                "health": "unregistered",
+                "overdue": False,
+                "pending_sessions": 4,
+                "pending_decisions": 2,
+                "last_check_at": None,
+                "last_successful_review_at": None,
+                "next_due_at": NOW.isoformat(),
+                "last_error": None,
+                "notice_path": str(output / "automation" / "NOTICE.md"),
+                "scheduler_kind": "windows-task-scheduler",
+            }
+            stream = io.StringIO()
+
+            with (
+                patch("codex_metabolism.cli.get_automation_status", return_value=status),
+                redirect_stdout(stream),
+            ):
+                code = main(["status", "--output-dir", str(output)])
+
+            self.assertEqual(code, 1)
+            rendered = stream.getvalue()
+            self.assertIn("Health: unregistered", rendered)
+            self.assertIn("Pending sessions: 4", rendered)
+            self.assertIn("Pending decisions: 2", rendered)
+
+    def test_scheduled_review_command_reuses_review_cli(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            config = Path(temp) / "config.json"
+            captured: list[list[str]] = []
+
+            def fake_scheduled(config_path, *, now, review_runner, notifier=None):
+                captured.append([str(config_path), now.isoformat()])
+                self.assertEqual(review_runner(["review", "--days", "1"]), 17)
+                return {"ran_review": True, "decisions": 0}
+
+            with (
+                patch("codex_metabolism.cli.run_scheduled_review", side_effect=fake_scheduled),
+                patch("codex_metabolism.cli.main", return_value=17) as recursive_main,
+            ):
+                code = main(
+                    [
+                        "scheduled-review",
+                        "--config",
+                        str(config),
+                        "--now",
+                        NOW.isoformat(),
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            recursive_main.assert_called_once_with(["review", "--days", "1"])
+            self.assertEqual(captured[0][0], str(config))
+
+    def test_successful_manual_review_refreshes_automation_heartbeat(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home, skills_root = make_deploy_home(root)
+            output = root / "review-output"
+            catalog = root / "catalog.json"
+            catalog.write_text(json.dumps([]), encoding="utf-8")
+
+            with patch("codex_metabolism.cli.record_review_success") as record:
+                code = main(
+                    [
+                        "review",
+                        "--codex-home",
+                        str(codex_home),
+                        "--skill-root",
+                        str(skills_root),
+                        "--project-root",
+                        str(root),
+                        "--output-dir",
+                        str(output),
+                        "--catalog-file",
+                        str(catalog),
+                        "--no-skillreaper",
+                        "--now",
+                        NOW.isoformat(),
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            record.assert_called_once_with(output, reviewed_at=NOW, source="manual")
 
 
 if __name__ == "__main__":

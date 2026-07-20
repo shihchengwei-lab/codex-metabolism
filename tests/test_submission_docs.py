@@ -117,6 +117,68 @@ class SubmissionDocsTests(unittest.TestCase):
         ):
             self.assertIn(required, readme)
 
+    def test_readmes_expose_opt_in_non_mutating_automation(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+
+        for required in (
+            "## Keep the loop running — opt in",
+            "manual review or opt-in scheduled trigger",
+            "No schedule is installed by default.",
+            "codex-metabolism enable --every-days 7 --after-sessions 10",
+            "codex-metabolism status",
+            "codex-metabolism disable",
+            "Windows Task Scheduler",
+            "launchd",
+            "systemd user timer",
+            ".codex-metabolism/automation/run-scheduled-review.cmd",
+            "~/Library/LaunchAgents/",
+            "~/.config/systemd/user/",
+            "Observe, Decide, and Stage",
+            "never Apply",
+            "With no prior staged review, sessions from before the first enable are not counted as new.",
+            "`--search-oss` remains off",
+            "config.json",
+            "heartbeat.json",
+            "NOTICE.md",
+            "unregistered",
+            "error",
+            "overdue",
+        ):
+            self.assertIn(required, readme)
+        for required in (
+            "## 讓迴圈持續運轉——明確啟用",
+            "手動 review 或明確啟用的排程觸發",
+            "預設不會安裝任何排程",
+            "codex-metabolism enable --every-days 7 --after-sessions 10",
+            "codex-metabolism status",
+            "codex-metabolism disable",
+            "Windows Task Scheduler",
+            "launchd",
+            "systemd user timer",
+            ".codex-metabolism/automation/run-scheduled-review.cmd",
+            "~/Library/LaunchAgents/",
+            "~/.config/systemd/user/",
+            "不會自動 Apply",
+            "若沒有先前 staged review，第一次啟用以前的 session 不算新 session",
+            "`--search-oss` 維持關閉",
+            "config.json",
+            "heartbeat.json",
+            "NOTICE.md",
+            "unregistered",
+            "error",
+            "overdue",
+        ):
+            self.assertIn(required, traditional)
+        for required in (
+            "opt-in native scheduler",
+            "stage-only review",
+            "heartbeat",
+            "no new sessions",
+        ):
+            self.assertIn(required, devpost)
+
     def test_video_pack_is_timed_under_three_minutes_and_covers_required_topics(self) -> None:
         production_guide = ROOT / "docs" / "DEMO_VIDEO.md"
         subtitles = ROOT / "docs" / "demo-voiceover.en.srt"

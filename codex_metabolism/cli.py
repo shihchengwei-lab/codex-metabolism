@@ -4,11 +4,20 @@ import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
 from .advisor import AdvisorError, CodexAdvisor
+from .automation import (
+    AutomationError,
+    build_config,
+    disable_automation,
+    enable_automation,
+    get_automation_status,
+    record_review_success,
+    run_scheduled_review,
+)
 from .catalog import build_oss_query, search_github
 from .codex_command import build_codex_command
 from .decide import decide
@@ -116,7 +125,7 @@ def _advisor_candidates(decisions: list[Any]) -> list[dict[str, Any]]:
 
 
 def _review(args: argparse.Namespace) -> int:
-    now = datetime.fromisoformat(args.now) if args.now else None
+    now = datetime.fromisoformat(args.now) if args.now else datetime.now(timezone.utc)
     skill_roots = args.skill_root or _default_skill_roots()
     catalog: list[dict[str, Any]] = _plugin_catalog()
     checked = False
@@ -190,6 +199,87 @@ def _review(args: argparse.Namespace) -> int:
     print(
         f"Staged {len(decisions)} decisions ({ready} ready, {blocked} needs research) at {output}"
     )
+    record_review_success(args.output_dir, reviewed_at=now, source="manual")
+    return 0
+
+
+def _automation_config_path(output_dir: Path) -> Path:
+    return output_dir / "automation" / "config.json"
+
+
+def _enable(args: argparse.Namespace) -> int:
+    enabled_at = datetime.fromisoformat(args.now) if args.now else datetime.now(timezone.utc)
+    config = build_config(
+        output_dir=args.output_dir,
+        project_root=args.project_root,
+        codex_home=args.codex_home,
+        skill_roots=args.skill_root or _default_skill_roots(),
+        review_days=args.days,
+        every_days=args.every_days,
+        after_sessions=args.after_sessions,
+        search_oss=args.search_oss,
+        catalog_file=args.catalog_file,
+        no_skillreaper=args.no_skillreaper,
+        enabled_at=enabled_at,
+        notify=not args.no_notify,
+    )
+    config_path = enable_automation(config)
+    print(
+        "Enabled staged review automation: "
+        f"check daily; review after {args.after_sessions} new sessions or {args.every_days:g} days."
+    )
+    print(f"Config: {config_path}")
+    print("Background reviews never apply, install, activate, archive, or delete anything.")
+    if not args.search_oss:
+        print("Background open-source search: disabled")
+    return 0
+
+
+def _status(args: argparse.Namespace) -> int:
+    current = datetime.fromisoformat(args.now) if args.now else datetime.now(timezone.utc)
+    status = get_automation_status(
+        _automation_config_path(args.output_dir),
+        now=current,
+    )
+    if args.json:
+        print(json.dumps(status, ensure_ascii=False, indent=2))
+    else:
+        print(f"Automation: {'enabled' if status['enabled'] else 'disabled'}")
+        print(f"Health: {status['health']}")
+        print(f"Scheduler: {status['scheduler_kind']} · registered={status['registered']}")
+        print(f"Pending sessions: {status['pending_sessions']}")
+        print(f"Pending decisions: {status['pending_decisions']}")
+        print(f"Last check: {status['last_check_at'] or 'never'}")
+        print(f"Last successful review: {status['last_successful_review_at'] or 'never'}")
+        print(f"Next time threshold: {status['next_due_at']}")
+        if status["last_error"]:
+            print(f"Last error: {status['last_error']}")
+        print(f"Notice: {status['notice_path']}")
+    return 1 if status["health"] in {"unregistered", "error", "overdue"} else 0
+
+
+def _disable(args: argparse.Namespace) -> int:
+    current = datetime.fromisoformat(args.now) if args.now else datetime.now(timezone.utc)
+    config_path = _automation_config_path(args.output_dir)
+    disable_automation(config_path, now=current)
+    print(f"Disabled scheduled reviews. Audit state retained at {config_path}")
+    return 0
+
+
+def _scheduled_review(args: argparse.Namespace) -> int:
+    current = datetime.fromisoformat(args.now) if args.now else datetime.now(timezone.utc)
+    result = run_scheduled_review(
+        args.config,
+        now=current,
+        review_runner=lambda argv: main(argv),
+    )
+    if result["ran_review"]:
+        print(f"Scheduled review staged {result.get('decisions', 0)} decisions.")
+    else:
+        print(
+            "Scheduled review skipped: "
+            f"{result['reason']} ({result.get('pending_sessions', 0)} new sessions)."
+        )
     return 0
 
 
@@ -234,6 +324,55 @@ def _parser() -> argparse.ArgumentParser:
     )
     review.add_argument("--advisor-model", default="gpt-5.6-sol", help=argparse.SUPPRESS)
     review.add_argument("--now", help=argparse.SUPPRESS)
+
+    enable = subparsers.add_parser(
+        "enable",
+        help="Opt in to automatic local, stage-only reviews",
+    )
+    enable.add_argument("--days", type=float, default=7, help="Session window for each review")
+    enable.add_argument("--every-days", type=float, default=7)
+    enable.add_argument("--after-sessions", type=int, default=10)
+    enable.add_argument("--codex-home", type=Path, default=_default_codex_home())
+    enable.add_argument("--skill-root", type=Path, action="append")
+    enable.add_argument("--project-root", type=Path, default=Path.cwd())
+    enable.add_argument("--output-dir", type=Path, default=Path(".codex-metabolism"))
+    enable.add_argument(
+        "--catalog-file",
+        type=Path,
+        help="Optional reviewed JSON catalog used by scheduled reviews",
+    )
+    enable.add_argument(
+        "--search-oss",
+        action="store_true",
+        help="Opt in to sanitized GitHub public search during background reviews",
+    )
+    enable.add_argument(
+        "--no-skillreaper",
+        action="store_true",
+        help="Disable optional read-only SkillReaper collection in background reviews",
+    )
+    enable.add_argument(
+        "--no-notify",
+        action="store_true",
+        help="Do not attempt a local OS notification when decisions are staged or review fails",
+    )
+    enable.add_argument("--now", help=argparse.SUPPRESS)
+
+    status = subparsers.add_parser("status", help="Show scheduler heartbeat and review backlog")
+    status.add_argument("--output-dir", type=Path, default=Path(".codex-metabolism"))
+    status.add_argument("--json", action="store_true")
+    status.add_argument("--now", help=argparse.SUPPRESS)
+
+    disable = subparsers.add_parser("disable", help="Remove the native review schedule")
+    disable.add_argument("--output-dir", type=Path, default=Path(".codex-metabolism"))
+    disable.add_argument("--now", help=argparse.SUPPRESS)
+
+    scheduled = subparsers.add_parser(
+        "scheduled-review",
+        help="Internal stage-only scheduler entrypoint",
+    )
+    scheduled.add_argument("--config", type=Path, required=True)
+    scheduled.add_argument("--now", help=argparse.SUPPRESS)
 
     for name in ("apply", "archive", "reject"):
         command = subparsers.add_parser(name)
@@ -283,6 +422,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         if args.command == "review":
             return _review(args)
+        if args.command == "enable":
+            return _enable(args)
+        if args.command == "status":
+            return _status(args)
+        if args.command == "disable":
+            return _disable(args)
+        if args.command == "scheduled-review":
+            return _scheduled_review(args)
         if args.command == "apply":
             apply_decision(
                 args.staging,
@@ -324,7 +471,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 codex_home=args.codex_home,
             )
         return 0
-    except (AdvisorError, InterventionError, LifecycleError, OSError, ValueError) as exc:
+    except (
+        AdvisorError,
+        AutomationError,
+        InterventionError,
+        LifecycleError,
+        OSError,
+        ValueError,
+    ) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
