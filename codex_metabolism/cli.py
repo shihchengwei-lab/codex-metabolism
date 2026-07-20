@@ -10,6 +10,7 @@ from typing import Any, Sequence
 
 from .advisor import AdvisorError, CodexAdvisor
 from .catalog import build_oss_query, search_github
+from .codex_command import build_codex_command
 from .decide import decide
 from .integrations.skillreaper import (
     collect_skillreaper,
@@ -43,7 +44,7 @@ def _default_skill_roots() -> list[Path]:
 def _plugin_catalog() -> list[dict[str, Any]]:
     try:
         result = subprocess.run(
-            ["codex", "plugin", "list"],
+            build_codex_command(["plugin", "list"]),
             text=True,
             capture_output=True,
             timeout=15,
@@ -57,6 +58,8 @@ def _plugin_catalog() -> list[dict[str, Any]]:
     for line in result.stdout.splitlines():
         parts = line.split()
         if not parts or "@" not in parts[0] or parts[0] == "PLUGIN":
+            continue
+        if len(parts) < 3 or parts[1].rstrip(",").casefold() != "installed":
             continue
         entries.append(
             {
@@ -229,7 +232,7 @@ def _parser() -> argparse.ArgumentParser:
             "to an ephemeral, read-only Codex run; it never changes authoritative decisions"
         ),
     )
-    review.add_argument("--advisor-model", default="gpt-5.6", help=argparse.SUPPRESS)
+    review.add_argument("--advisor-model", default="gpt-5.6-sol", help=argparse.SUPPRESS)
     review.add_argument("--now", help=argparse.SUPPRESS)
 
     for name in ("apply", "archive", "reject"):

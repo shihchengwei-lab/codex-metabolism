@@ -15,16 +15,16 @@ The canonical narration and subtitle timing lives in [`demo-voiceover.en.srt`](d
 
 | Time | Shot | On-screen action |
 |---|---|---|
-| 0:00–0:13 | Problem | Title card, then briefly show the four intervention layers accumulating around an agent. |
-| 0:13–0:29 | Product | Show the observe → adopt → evaluate → prune loop from the README preview. |
-| 0:29–0:45 | Build evidence | Show the README section that separates Codex/GPT-5.6 contributions from human decisions. |
-| 0:45–1:00 | Safe fixtures | Open the two synthetic JSONL sessions and the demo `AGENTS.md`; keep text large enough to read. |
-| 1:00–1:18 | First generation | From a clean clone, run `python examples/run_closed_loop_demo.py`; pause on `CREATE HARNESS + PATCH RULE`. |
-| 1:18–1:35 | Adoption ladder | Open the generated report and highlight necessity, Codex built-in, installed, repository, and ecosystem. |
-| 1:35–1:53 | Trust boundary | Show the staged hook, `PENDING_TRUST`, and the managed-region-only `AGENTS.md` diff. |
-| 1:53–2:12 | Second generation | Return to the terminal and pause on `KEEP HARNESS (VALIDATED)`. |
-| 2:12–2:29 | Pruning | Show `KEEP SKILL`, `RETIRE_CANDIDATE SKILL`, and the reversible archive/restore commands. |
-| 2:29–2:42 | Tools and model boundary | Show the external-tool ladder and the optional `--advisor codex` command without invoking private data. |
+| 0:00–0:15 | Concrete pain | Put two repeated failed `deploy production` sessions side by side, then reveal a growing `AGENTS.md` and `old-unused` skill. Do not open with architecture. |
+| 0:15–0:29 | Product | Show the observe → adopt → evaluate → prune loop and the one-line promise: use evidence to add, test, and remove collaboration structure. |
+| 0:29–0:43 | Build evidence | Show the README section that separates Codex/GPT-5.6 contributions from human product decisions. |
+| 0:43–0:58 | Safe fixtures | Open the two synthetic JSONL sessions and the demo `AGENTS.md`; keep text large enough to read. |
+| 0:58–1:15 | First generation | From a clean clone, run `python examples/run_closed_loop_demo.py`; pause on `CREATE HARNESS + PATCH RULE`. |
+| 1:15–1:31 | Adoption ladder | Open the generated report and highlight necessity, Codex built-in, installed, repository, and ecosystem. |
+| 1:31–1:48 | Trust boundary | Show the staged hook, `PENDING_TRUST`, and the managed-region-only `AGENTS.md` diff. |
+| 1:48–2:05 | Second generation | Return to the terminal and pause on `KEEP HARNESS (VALIDATED)`. |
+| 2:05–2:20 | Pruning | Show `KEEP SKILL`, `RETIRE_CANDIDATE SKILL`, and the reversible archive/restore boundary. |
+| 2:20–2:42 | Live model evidence | Show the **live synthetic advisor run** command, `--advisor codex --advisor-model gpt-5.6-sol`, then the real `CREATE HARNESS` agreement and `KEEP RULE` disagreement. Label it non-authoritative. |
 | 2:42–2:50 | Close | Return to the title card with the repository URL. |
 
 ## Capture setup
@@ -32,15 +32,16 @@ The canonical narration and subtitle timing lives in [`demo-voiceover.en.srt`](d
 1. Clone the public repository into a short neutral path such as `C:\demo\codex-metabolism`.
 2. Set the terminal to at least 120 columns, hide the tab bar if it exposes a username, and enable Do Not Disturb.
 3. Use Python 3.11 or newer and run the zero-install demo once before recording.
-4. Record a fresh run, then open only the generated `report.md`, staged hook, managed rule diff, and receipt ledger.
-5. Keep text at 125–150% zoom. Use hard cuts instead of fast scrolling.
-6. Add the provided SRT captions and normalize narration loudness before export.
+4. Record a fresh deterministic run, then open only the generated `report.md`, staged hook, managed rule diff, and receipt ledger.
+5. Run the advisor only against the public fixtures. Its verified run took 48.5 seconds; show the start and real result with a labelled hard cut instead of pretending it completed instantly.
+6. Keep text at 125–150% zoom. Use hard cuts instead of fast scrolling.
+7. Add the provided SRT captions and normalize narration loudness before export.
 
 ## Final verification
 
 - Video duration is below 3:00; the planned cut ends at 2:50.
 - The voiceover explicitly explains what was built, how Codex was used, and how GPT-5.6 contributed.
-- The deterministic demo is described truthfully as model-free; the GPT-5.6 advisor is identified as optional.
+- The deterministic demo is described truthfully as model-free; the separate `gpt-5.6-sol` advisor run is visibly live, optional, synthetic-only, and non-authoritative.
 - Only synthetic data appears on screen.
 - The video is uploaded to YouTube as **Public**, not Unlisted or Private.
 - The description links to `https://github.com/shihchengwei-lab/codex-metabolism` and states `MIT License`.

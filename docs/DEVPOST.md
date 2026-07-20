@@ -4,15 +4,15 @@
 
 - **Project:** Codex Metabolism
 - **Track:** Developer Tools
-- **Tagline:** Evidence-driven metabolism for the whole Codex collaboration stack.
-- **One sentence:** Codex Metabolism learns from session friction, finds or creates the smallest useful intervention across harnesses, tools, skills, and bounded rules, then evaluates and prunes it using later sessions.
+- **Tagline:** Turn repeated Codex mistakes into tested safeguards—and retire what stops helping.
+- **One sentence:** Codex Metabolism finds recurring friction in Codex sessions, stages the smallest existing or new intervention across hooks, tools, skills, and bounded rules, then uses later sessions to keep, repair, roll back, or archive it.
 - **Repository:** https://github.com/shihchengwei-lab/codex-metabolism
 - **Demo video:** `[USER ACTION: add public YouTube URL]`
 - **Primary `/feedback` Session ID:** `[USER ACTION: run /feedback in the primary build thread]`
 
 ## Inspiration
 
-Coding agents readily accumulate rules, memories, and skills, but accumulation is not improvement. A repeated failure may be better solved by a test, hook, script, installed plugin, or existing open-source tool. We wanted Codex to maintain a finite and auditable collaboration environment: grow useful structure, repair what still causes friction, and remove what no longer earns its cost.
+Our demo begins with a concrete failure: two Codex sessions repeat the same failed deployment and the same user correction, while old rules and an unused skill remain in the environment indefinitely. Coding agents readily accumulate rules, memories, and skills, but accumulation is not improvement. A repeated failure may be better solved by a test, hook, script, installed plugin, or existing open-source tool. We wanted Codex to maintain a finite and auditable collaboration environment: grow useful structure, repair what still causes friction, and remove what no longer earns its cost.
 
 Hermes Agent demonstrated agent-managed skill creation. Session-level retrospective tools demonstrated that trajectories contain more useful evidence than token totals. SkillReaper demonstrated evidence-based, reversible skill pruning. Codex Metabolism connects those ideas inside Codex and expands the unit of metabolism from “a skill” to the full collaboration intervention stack.
 
@@ -42,7 +42,7 @@ All proposals are staged. Approved interventions receive a local ledger entry. L
 - Staging renderer for reports, diffs, hook proposals, skill changes, rules, and adoption plans.
 - Intervention receipts plus later-session `VALIDATED`, `INEFFECTIVE`, and `IDLE_CANDIDATE` verdicts. New project hooks remain `PENDING_TRUST` until the user reviews them through Codex `/hooks` and confirms activation.
 - Hash-gated apply, rollback, skill archive/restore, and manual external-tool activation/retirement recording.
-- Optional GPT-5.6 second opinion through ephemeral, read-only `codex exec` with a strict schema.
+- Optional GPT-5.6 second opinion through ephemeral, read-only `codex exec` with the verified `gpt-5.6-sol` model and a strict schema.
 - Failing tests were written before each implementation slice.
 
 ## Challenges
@@ -55,6 +55,8 @@ The ownership boundary was also subtle. A fully automatic `AGENTS.md` rewrite wo
 
 Finally, several open-source projects already solve parts of exploration, evolution, or pruning. The adoption ladder became both a product feature and our implementation discipline: integrate or adopt before building another tool.
 
+The live advisor path also exposed two portability gaps that the deterministic demo could not: Windows resolved an npm `.cmd` launcher that Python could not execute directly, and Codex structured outputs reject JSON Schema `uniqueItems`. We added a shared, tested launcher for both the advisor and installed-plugin inventory, filtered marketplace entries that are not installed, moved duplicate-evidence enforcement into the local deterministic validator, and then reran the synthetic advisor successfully.
+
 ## Accomplishments
 
 - The public demo replays two generations: repeated friction produces an intervention, two later successful sessions validate it, and duplicate creation is suppressed.
@@ -65,6 +67,7 @@ Finally, several open-source projects already solve parts of exploration, evolut
 - External projects are proposed and tracked but never silently downloaded, installed, or deleted.
 - Incomplete lifecycle or parser evidence cannot become a retirement claim.
 - Retirement remains a human decision; local skills are archived and restorable.
+- A real `gpt-5.6-sol` advisor run on the public fixtures completed in 48.5 seconds: it agreed with `CREATE HARNESS`, challenged a deterministic `PATCH RULE` with `KEEP RULE`, and remained visibly non-authoritative.
 
 ## What we learned
 
@@ -74,7 +77,7 @@ The slime-mold analogy proved useful. The system grows a path only when repeated
 
 ## Demo video
 
-The ready-to-record [video production pack](DEMO_VIDEO.md) contains a 2:50 English voiceover, privacy-safe shot list, capture checklist, YouTube metadata, and timed [SRT captions](demo-voiceover.en.srt). It uses only the repository's synthetic data and leaves ten seconds of safety margin below the three-minute limit.
+The ready-to-record [video production pack](DEMO_VIDEO.md) contains a 2:50 English voiceover, a concrete first-15-second pain story, the verified live synthetic GPT-5.6 advisor result, a privacy-safe shot list, YouTube metadata, and timed [SRT captions](demo-voiceover.en.srt). It uses only the repository's synthetic data and leaves ten seconds of safety margin below the three-minute limit.
 
 ## What's next
 
@@ -91,6 +94,7 @@ The [OpenAI Build Week page](https://openai.devpost.com/) currently requires a w
 - [x] Setup instructions and sample data.
 - [x] One-command isolated two-generation demo.
 - [x] Supported-platform status stated honestly.
+- [x] Independent Linux + Python 3.12 clean-clone verification completed.
 - [x] Codex/GPT-5.6 contribution and human decisions documented.
 - [x] English voiceover script, timed captions, and privacy-safe shot list prepared.
 - [x] Publish repository: https://github.com/shihchengwei-lab/codex-metabolism

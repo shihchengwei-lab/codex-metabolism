@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any, Callable
+
+from .codex_command import build_codex_command
 
 
 class AdvisorError(RuntimeError):
@@ -37,7 +41,6 @@ ADVISOR_SCHEMA: dict[str, Any] = {
                         "type": "array",
                         "items": {"type": "string"},
                         "minItems": 1,
-                        "uniqueItems": True,
                     },
                     "proposed_change": {"type": "string"},
                     "reasoning": {"type": "string"},
@@ -65,13 +68,19 @@ class CodexAdvisor:
     def __init__(
         self,
         *,
-        model: str = "gpt-5.6",
+        model: str = "gpt-5.6-sol",
         executable: str = "codex",
         runner: Callable[..., Any] = subprocess.run,
+        os_name: str | None = None,
+        which: Callable[[str], str | None] = shutil.which,
+        comspec: str | None = None,
     ) -> None:
         self.model = model
         self.executable = executable
         self.runner = runner
+        self.os_name = os.name if os_name is None else os_name
+        self.which = which
+        self.comspec = comspec or os.environ.get("COMSPEC") or "cmd.exe"
 
     def build_command(self, *, schema_path: str | Path, output_path: str | Path) -> list[str]:
         return [
@@ -96,6 +105,21 @@ class CodexAdvisor:
             ),
         ]
 
+    def build_runtime_command(
+        self,
+        *,
+        schema_path: str | Path,
+        output_path: str | Path,
+    ) -> list[str]:
+        command = self.build_command(schema_path=schema_path, output_path=output_path)
+        return build_codex_command(
+            command[1:],
+            executable=self.executable,
+            os_name=self.os_name,
+            which=self.which,
+            comspec=self.comspec,
+        )
+
     def advise(
         self,
         candidates: list[dict[str, Any]],
@@ -117,7 +141,10 @@ class CodexAdvisor:
             )
             try:
                 result = self.runner(
-                    self.build_command(schema_path=schema_path, output_path=output_path),
+                    self.build_runtime_command(
+                        schema_path=schema_path,
+                        output_path=output_path,
+                    ),
                     input=packet,
                     text=True,
                     encoding="utf-8",
@@ -161,7 +188,10 @@ class CodexAdvisor:
             if suggestion.get("confidence") not in {"low", "medium", "high"}:
                 raise AdvisorError("advisor returned an unsupported confidence")
             supplied = set(candidate.get("evidence_ids", []))
-            cited = set(suggestion.get("evidence_ids", []))
+            evidence_ids = suggestion.get("evidence_ids", [])
+            cited = set(evidence_ids)
+            if len(evidence_ids) != len(cited):
+                raise AdvisorError("advisor returned duplicate evidence IDs")
             if not cited or not cited.issubset(supplied):
                 raise AdvisorError("advisor invented or omitted evidence IDs")
             if candidate.get("mechanical") and suggestion.get("target_kind") not in {

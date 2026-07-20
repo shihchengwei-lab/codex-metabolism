@@ -82,6 +82,16 @@ def _atomic_json(path: Path, payload: object) -> None:
     _atomic_text(path, json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
 
 
+def _configured_plugin_count(observation: Observation) -> int:
+    return sum(
+        1
+        for entry in observation.catalog_entries
+        if entry.get("kind") == "plugin"
+        and entry.get("source") == "codex-plugin-list"
+        and str(entry.get("status", "")).casefold().startswith("installed")
+    )
+
+
 def _report(observation: Observation, decisions: list[Decision], generated_at: datetime) -> str:
     coverage = observation.coverage
     lines = [
@@ -95,7 +105,8 @@ def _report(observation: Observation, decisions: list[Decision], generated_at: d
             f"{coverage.parse_errors} malformed lines · skill usage={coverage.skill_invocation} · "
             f"skill lifecycle={coverage.skill_lifecycle_source} "
             f"({'complete' if coverage.skill_lifecycle_complete else 'conservative'}) · "
-            f"observed installed tools={len(observation.installed_tools)} · "
+            f"session-observed PATH tools={len(observation.installed_tools)} · "
+            f"configured plugins={_configured_plugin_count(observation)} · "
             f"external catalog={'checked' if coverage.catalog_checked else 'not checked'}"
         ),
         "",
@@ -361,6 +372,7 @@ def stage_review(
             "session_count": len(observation.sessions),
             "skill_count": len(observation.skills),
             "installed_tool_count": len(observation.installed_tools),
+            "configured_plugin_count": _configured_plugin_count(observation),
             "installed_tools": [
                 {
                     "name": tool.get("name"),

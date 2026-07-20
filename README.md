@@ -4,6 +4,14 @@
 
 [繁體中文](README.zh-TW.md) · OpenAI Build Week track: **Developer Tools**
 
+## One failure, before and after
+
+**Before:** two sessions repeated the same failed `deploy production` command and the same user correction: run `preflight` first. Meanwhile, a useful skill and an `old-unused` skill occupied the same permanent-looking toolbox.
+
+**After review:** stage a `PreToolUse` guard that can prevent the command-order mistake mechanically, keep the used skill, and mark `old-unused` as an archive candidate—never auto-delete it. Nothing touches live state until a person reviews the evidence and approves one decision.
+
+**After later sessions:** two verified successes validate the guard, its receipt suppresses a duplicate proposal, and the next review returns `KEEP HARNESS (VALIDATED)`. That is metabolism: not more memory, but a measured cycle of adding, testing, and removing collaboration structure.
+
 ## Judge quick start — under 60 seconds
 
 Requirements: Python 3.11 or newer. No installation, API key, Codex login, or personal session data is required.
@@ -43,7 +51,7 @@ The human collaborator chose the product boundaries: expand metabolism beyond sk
 
 ### Runtime boundary
 
-The deterministic judge demo intentionally makes no model call. It proves the closed loop reproducibly with synthetic fixtures. The separate `--advisor codex` option can request a bounded GPT-5.6 second opinion through the user's existing Codex authentication, but that advice is non-authoritative and cannot bypass deterministic safety gates.
+The deterministic judge demo intentionally makes no model call. It proves the closed loop reproducibly with synthetic fixtures. The separate `--advisor codex` option can request a bounded GPT-5.6 second opinion through the user's existing Codex authentication; the verified default is `gpt-5.6-sol`. That advice is non-authoritative and cannot bypass deterministic safety gates.
 
 See [the Devpost submission draft](docs/DEVPOST.md) and [the English video production pack](docs/DEMO_VIDEO.md) for the build story and demo plan.
 
@@ -234,15 +242,26 @@ If the ecosystem rung is unchecked, a new `CREATE` remains `needs_research` and 
 - [codlogs](https://github.com/tobitege/codlogs) was evaluated as a mature read-only session explorer. The MVP keeps a zero-dependency streaming parser behind an adapter-shaped observation layer.
 - [Hermes Agent](https://github.com/NousResearch/hermes-agent) and [Hermes Curator Evolver](https://github.com/pingchesu/hermes-curator-evolver) inspired agent-managed skill generation and evidence-gated evolution. Their code is not vendored.
 
-## Optional GPT-5.6 second opinion
+## Optional live GPT-5.6 advisor
 
 The deterministic router remains authoritative:
 
 ```powershell
-codex-metabolism review --days 7 --search-oss --advisor codex
+codex-metabolism review --days 7 --advisor codex --advisor-model gpt-5.6-sol
 ```
 
 This explicit option starts an ephemeral `codex exec` run in a read-only sandbox with a strict output schema. It supports all four target layers, cites only supplied evidence IDs, cannot bypass an incomplete adoption ladder or the mechanical-first invariant, and stores its output as non-authoritative metadata.
+
+On July 20, 2026, the same public synthetic fixtures were sent through Codex CLI 0.144.5 and `gpt-5.6-sol`. The live run completed in **48.5 seconds** and produced four schema-valid suggestions:
+
+| Evidence target | Deterministic decision | GPT-5.6 advice | What the contrast shows |
+|---|---|---|---|
+| Repeated deployment recovery | `CREATE HARNESS` | `CREATE HARNESS` · high | Prefer mechanical prevention over another prose reminder. |
+| Reviewed `AGENTS.md` region | `PATCH RULE` | `KEEP RULE` · high | The model challenged a patch because the packet proved full review, not a specific defect. |
+| Recently used skill | `KEEP SKILL` | `KEEP SKILL` · high | Positive use evidence supports retention. |
+| `old-unused` skill | `RETIRE_CANDIDATE` | `RETIRE_CANDIDATE` · medium | Non-use is a soft signal, so removal still requires human judgment. |
+
+The disagreement is intentional and visible: GPT-5.6 advises, while deterministic evidence and safety gates decide what may be staged. Neither path applies a change automatically.
 
 Privacy boundary: the option sends bounded decision and evidence summaries—including relevant command and correction excerpts—to OpenAI using the user's Codex authentication. It is off by default.
 
@@ -270,7 +289,8 @@ The test suite covers JSONL variants and malformed input, parser coverage, adopt
 ## Supported platforms
 
 - **Windows, Python 3.12:** verified in this checkout and again from a clean public clone.
-- **macOS/Linux, Python 3.11+:** designed for standard-library portability, not yet verified by this project team.
+- **Linux, Python 3.12:** independently verified from a clean clone; the closed-loop demo and full test suite passed.
+- **macOS, Python 3.11+:** designed for standard-library portability, not yet verified.
 
 ## License
 
