@@ -63,6 +63,32 @@ class SubmissionDocsTests(unittest.TestCase):
         ):
             self.assertIn(required, readme)
 
+    def test_readme_exposes_two_non_command_order_friction_cases(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        for required in (
+            "## Two more real-world friction patterns",
+            "python examples/run_friction_cases_demo.py",
+            "Existing-tool friction: PATCH TOOL -> tobitege/codlogs",
+            "Visual-proof friction: PATCH SKILL -> ui-verification",
+            "anonymized synthetic replays",
+            "Neither case is a command-order rule",
+        ):
+            self.assertIn(required, readme)
+
+    def test_readme_exposes_the_imperfect_data_pressure_test(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        for required in (
+            "## Imperfect-data pressure test",
+            "python examples/run_messy_evidence_demo.py",
+            "Messy evidence: 1 decision, 2 abstentions",
+            "Coverage warning: 1 malformed JSONL line",
+            "Unsafe retirement decisions: 0",
+            "does not claim semantic clustering",
+        ):
+            self.assertIn(required, readme)
+
     def test_readme_exposes_build_evidence_and_supported_platforms(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
@@ -151,6 +177,29 @@ class SubmissionDocsTests(unittest.TestCase):
         )
         self.assertIn("- [ ] Record and upload a public YouTube video", devpost)
         self.assertIn("- [ ] Obtain and enter the `/feedback` Codex Session ID", devpost)
+
+    def test_devpost_names_the_non_command_order_replay(self) -> None:
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+
+        for required in (
+            "python examples/run_friction_cases_demo.py",
+            "adopts the reviewed `codlogs` tool",
+            "patches an existing `$ui-verification` skill",
+            "Neither correction is a command-order rule",
+        ):
+            self.assertIn(required, devpost)
+
+    def test_devpost_names_the_imperfect_data_pressure_test(self) -> None:
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+
+        for required in (
+            "python examples/run_messy_evidence_demo.py",
+            "one evidence-backed decision",
+            "two explicit abstentions",
+            "one parser coverage warning",
+            "zero unsafe retirement decisions",
+        ):
+            self.assertIn(required, devpost)
 
     def test_source_distribution_includes_submission_assets(self) -> None:
         manifest = (ROOT / "MANIFEST.in").read_text(encoding="utf-8")

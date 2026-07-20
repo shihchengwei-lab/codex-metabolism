@@ -29,6 +29,10 @@ Before creating anything, it climbs five rungs: necessity, Codex built-ins, inst
 
 All proposals are staged. Approved interventions receive a local ledger entry. Later sessions can validate them, show that friction recurred, or nominate an idle intervention for retirement. Active receipts suppress duplicate creation proposals, closing the loop instead of repeatedly rediscovering the same problem.
 
+The secondary public replay, `python examples/run_friction_cases_demo.py`, demonstrates that the router is not limited to deployment sequencing. One repeated correction adopts the reviewed `codlogs` tool instead of rebuilding a session explorer; another patches an existing `$ui-verification` skill after tests passed without rendered UI evidence. Neither correction is a command-order rule. The four public JSONL sessions are anonymized synthetic replays and the isolated run does not inspect the user's configured plugins.
+
+Because clean fixtures can overstate robustness, `python examples/run_messy_evidence_demo.py` adds a six-session imperfect-data pressure test. Differently worded corrections, unrelated successes, a one-off recovery, repeated failures without verified recovery, a success in the wrong session, malformed JSONL, a high-star catalog distractor, and incomplete lifecycle evidence produce one evidence-backed decision, two explicit abstentions, one parser coverage warning, and zero unsafe retirement decisions. The non-actions are written to an inspectable challenge summary without adding an unsupported fifth decision type. This remains a synthetic stress fixture, not a real-world quality benchmark, and it does not claim semantic clustering across paraphrased commands.
+
 `AGENTS.md` has a mixed-ownership boundary. The entire active document is evaluated, but only bytes between an existing valid `codex-metabolism:managed-start` / `managed-end` marker pair can be changed after explicit approval. Everything else remains recommendation-only. Full-file hashes, a ten-rule managed cap, and rollback protect the human-owned file.
 
 ## How we built it
@@ -60,6 +64,8 @@ The live advisor path also exposed two portability gaps that the deterministic d
 ## Accomplishments
 
 - The public demo replays two generations: repeated friction produces an intervention, two later successful sessions validate it, and duplicate creation is suppressed.
+- A separate zero-install replay routes non-command-order friction to `PATCH TOOL` for existing-tool adoption and `PATCH SKILL` for visual-proof workflow repair.
+- An imperfect-data pressure test produces one supported action, two visible non-actions, partial parser coverage, and no unsafe retirement proposal.
 - One review spans mechanical harnesses, external tools, skills, and bounded `AGENTS.md` rules.
 - A complete demo review produces harness creation, managed-rule pruning, skill retention, and a skill retirement candidate.
 - Review never mutates live state.
