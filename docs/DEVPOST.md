@@ -18,7 +18,11 @@ Editable source: [`assets/metabolism-loop.svg`](assets/metabolism-loop.svg). Use
 
 ## Inspiration
 
-Our demo begins with a concrete failure: two Codex sessions repeat the same failed deployment and the same user correction, while old rules and an unused skill remain in the environment indefinitely. Coding agents readily accumulate rules, memories, and skills, but accumulation is not improvement. A repeated failure may be better solved by a test, hook, script, installed plugin, or existing open-source tool. We wanted Codex to maintain a finite and auditable collaboration environment: grow useful structure, repair what still causes friction, and remove what no longer earns its cost.
+OpenAI once documented a [literal goblin problem](https://openai.com/index/where-the-goblins-came-from/): Codex needed a developer-prompt instruction telling it, “Never talk about goblins.” The patch made sense—but how many rules in your `AGENTS.md` still solve a problem your recent sessions actually have?
+
+Coding agents are excellent at adding memory, rules, skills, and tools. They are much worse at proving that an intervention still helps—or removing it when it no longer does. Our demo begins with two Codex sessions repeating the same failed deployment and user correction, while stale rules and an unused skill remain installed indefinitely. Accumulation is not improvement. The smallest reliable fix may be a test, hook, script, installed plugin, or existing open-source tool—not another paragraph of instructions.
+
+Codex Metabolism is inspired by slime mold: explore candidate paths, reinforce those that carry useful traffic, validate them against future evidence, and withdraw structure that no longer earns its cost. The goal is a finite, auditable collaboration environment that becomes more personal and less frustrating over time.
 
 Hermes Agent demonstrated agent-managed skill creation. Session-level retrospective tools demonstrated that trajectories contain more useful evidence than token totals. SkillReaper demonstrated evidence-based, reversible skill pruning. Codex Metabolism connects those ideas inside Codex and expands the unit of metabolism from “a skill” to the full collaboration intervention stack.
 
