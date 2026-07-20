@@ -20,6 +20,79 @@ def _seconds(timestamp: str) -> float:
 
 
 class SubmissionDocsTests(unittest.TestCase):
+    def test_readmes_keep_the_judge_path_bounded_and_nonduplicative(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
+
+        self.assertLessEqual(len(readme.splitlines()), 260)
+        self.assertLessEqual(len(traditional.splitlines()), 190)
+        self.assertEqual(readme.count("python examples/run_closed_loop_demo.py"), 1)
+        self.assertEqual(traditional.count("python examples/run_closed_loop_demo.py"), 1)
+        self.assertIn("## Evidence at a glance", readme)
+        self.assertIn("## 證據一覽", traditional)
+
+    def test_ci_exposes_the_supported_windows_linux_python_matrix(self) -> None:
+        workflow = ROOT / ".github" / "workflows" / "ci.yml"
+        self.assertTrue(workflow.is_file())
+        content = workflow.read_text(encoding="utf-8")
+
+        for required in (
+            "pull_request:",
+            "push:",
+            "workflow_dispatch:",
+            "contents: read",
+            "ubuntu-latest",
+            "windows-latest",
+            '"3.11"',
+            '"3.12"',
+            "actions/checkout@v7",
+            "actions/setup-python@v7",
+            "python -m unittest discover -s tests -v",
+            "python examples/run_closed_loop_demo.py",
+            "python examples/run_friction_cases_demo.py",
+            "python examples/run_messy_evidence_demo.py",
+            "python examples/run_detector_evaluation.py",
+            "python -m build",
+        ):
+            self.assertIn(required, content)
+        self.assertNotIn("macos-latest", content)
+
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("actions/workflows/ci.yml/badge.svg", readme)
+
+    def test_detector_evaluation_is_public_bounded_and_reproducible(self) -> None:
+        evaluation = ROOT / "docs" / "EVALUATION.md"
+        self.assertTrue(evaluation.is_file())
+        content = evaluation.read_text(encoding="utf-8")
+
+        for required in (
+            "python examples/run_detector_evaluation.py",
+            "24",
+            "8",
+            "0",
+            "1.000",
+            "0.500",
+            "0.667",
+            "path variation",
+            "argument variation",
+            "command aliases",
+            "unmarked corrections",
+            "synthetic",
+            "not a real-world quality benchmark",
+            "failure → correction → same-command success",
+            "two different sessions",
+            "normal retry",
+            "false allow",
+        ):
+            self.assertIn(required, content)
+
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+        self.assertIn("[Detector boundary evaluation](docs/EVALUATION.md)", readme)
+        self.assertIn("[Detector 邊界評估](docs/EVALUATION.md)", traditional)
+        self.assertIn("24-case detector boundary evaluation", devpost)
+
     def test_readme_opens_with_the_metabolism_distinction(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
@@ -182,19 +255,25 @@ class SubmissionDocsTests(unittest.TestCase):
     def test_video_pack_is_timed_under_three_minutes_and_covers_required_topics(self) -> None:
         production_guide = ROOT / "docs" / "DEMO_VIDEO.md"
         subtitles = ROOT / "docs" / "demo-voiceover.en.srt"
+        devpost = ROOT / "docs" / "DEVPOST.md"
         self.assertTrue(production_guide.is_file())
         self.assertTrue(subtitles.is_file())
+        self.assertTrue(devpost.is_file())
 
         guide_text = production_guide.read_text(encoding="utf-8")
         subtitle_text = subtitles.read_text(encoding="utf-8")
+        devpost_text = devpost.read_text(encoding="utf-8")
         cues = re.findall(
             r"(?m)^(\d{2}:\d{2}:\d{2},\d{3}) --> "
             r"(\d{2}:\d{2}:\d{2},\d{3})$",
             subtitle_text,
         )
 
-        self.assertGreaterEqual(len(cues), 8)
-        self.assertLessEqual(_seconds(cues[-1][1]), 180)
+        self.assertEqual(len(cues), 11)
+        self.assertLessEqual(_seconds(cues[-1][1]), 160)
+        blocks = re.split(r"\r?\n\s*\r?\n", subtitle_text.strip())
+        for block in blocks:
+            self.assertLessEqual(len(block.splitlines()[2:]), 2)
         for required in (
             "Codex Metabolism",
             "Codex",
@@ -204,6 +283,9 @@ class SubmissionDocsTests(unittest.TestCase):
             "KEEP RULE",
             "KEEP HARNESS",
             "synthetic",
+            "zero false positives",
+            "fifty percent recall",
+            "exact reviewed",
         ):
             self.assertIn(required, subtitle_text)
         for required in (
@@ -227,8 +309,11 @@ class SubmissionDocsTests(unittest.TestCase):
             "abstract slime-mold network",
             "future-session evidence",
             "fades unused branches",
+            "2:35",
         ):
             self.assertIn(required, guide_text)
+        self.assertIn("2:35 English voiceover", devpost_text)
+        self.assertNotIn("2:50 English voiceover", devpost_text)
 
     def test_devpost_checklist_records_the_public_repository_but_not_user_actions(self) -> None:
         devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
@@ -237,7 +322,7 @@ class SubmissionDocsTests(unittest.TestCase):
             "- [x] Publish repository: https://github.com/shihchengwei-lab/codex-metabolism",
             devpost,
         )
-        self.assertIn("- [ ] Record and upload a public YouTube video", devpost)
+        self.assertIn("- [ ] Upload the rendered video to public YouTube", devpost)
         self.assertIn("- [ ] Obtain and enter the `/feedback` Codex Session ID", devpost)
 
     def test_devpost_names_the_non_command_order_replay(self) -> None:

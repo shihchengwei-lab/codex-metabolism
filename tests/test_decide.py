@@ -11,6 +11,21 @@ from codex_metabolism.observe import observe
 from tests.helpers import NOW, make_deploy_home, session_records, write_jsonl, write_skill
 
 
+def without_correction(records: list[dict]) -> list[dict]:
+    return [
+        record
+        for record in records
+        if not (
+            record.get("type") == "response_item"
+            and record.get("payload", {}).get("type") == "message"
+            and record.get("payload", {}).get("role") == "user"
+            and str(
+                (record.get("payload", {}).get("content") or [{}])[0].get("text", "")
+            ).startswith("No. Run `")
+        )
+    ]
+
+
 class DecideTests(unittest.TestCase):
     def test_mechanical_harness_wins_over_skill_or_rule_for_preflight_friction(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -43,13 +58,75 @@ class DecideTests(unittest.TestCase):
             self.assertFalse(any(d.target_kind == "RULE" for d in friction))
             self.assertFalse(any(d.target_kind == "SKILL" for d in friction))
 
+    def test_normal_retries_without_between_failure_corrections_are_not_friction(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home = root / ".codex"
+            skills_root = root / ".agents" / "skills"
+            for index in (1, 2):
+                write_jsonl(
+                    codex_home
+                    / "sessions"
+                    / "2026"
+                    / "07"
+                    / "20"
+                    / f"rollout-{index}.jsonl",
+                    without_correction(session_records(f"retry-{index}")),
+                )
+
+            snapshot = observe(
+                codex_home,
+                [skills_root],
+                days=7,
+                now=NOW,
+                project_root=root,
+                catalog_entries=[],
+                catalog_checked=True,
+            )
+
+            decisions = decide(snapshot, now=NOW)
+
+            self.assertFalse(
+                any(item.metadata.get("signature") == "deploy production" for item in decisions)
+            )
+
+    def test_every_recovery_session_must_contain_a_correction_before_success(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home = root / ".codex"
+            skills_root = root / ".agents" / "skills"
+            write_jsonl(
+                codex_home / "sessions" / "2026" / "07" / "20" / "rollout-one.jsonl",
+                session_records("corrected"),
+            )
+            write_jsonl(
+                codex_home / "sessions" / "2026" / "07" / "20" / "rollout-two.jsonl",
+                without_correction(session_records("uncorrected")),
+            )
+
+            snapshot = observe(
+                codex_home,
+                [skills_root],
+                days=7,
+                now=NOW,
+                project_root=root,
+                catalog_entries=[],
+                catalog_checked=True,
+            )
+
+            decisions = decide(snapshot, now=NOW)
+
+            self.assertFalse(
+                any(item.metadata.get("signature") == "deploy production" for item in decisions)
+            )
+
     def test_contextual_repeated_workflow_patches_the_skill_when_no_mechanical_fix_is_known(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             codex_home = root / ".codex"
             skills_root = root / ".agents" / "skills"
             write_skill(skills_root, "release-workflow", description="Guide a contextual release review")
-            correction = "Use $release-workflow and verify the contextual checklist."
+            correction = "No. Use $release-workflow and verify the contextual checklist."
             for index in (1, 2):
                 write_jsonl(
                     codex_home / "sessions" / "2026" / "07" / "20" / f"rollout-{index}.jsonl",

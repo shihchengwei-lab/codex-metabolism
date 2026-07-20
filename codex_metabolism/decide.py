@@ -267,7 +267,9 @@ def _friction_decisions(observation: Observation) -> list[Decision]:
             signature = _signature(tool.command)
             success = _first_later_success(tool, session, signature)
             if success:
-                groups[signature].append((session, tool, success, _correction_between(tool, success, session)))
+                correction = _correction_between(tool, success, session)
+                if correction:
+                    groups[signature].append((session, tool, success, correction))
 
     decisions: list[Decision] = []
     for signature, occurrences in groups.items():
@@ -365,8 +367,8 @@ def _friction_decisions(observation: Observation) -> list[Decision]:
             target = f"{_slug(required or 'preflight')}-before-{_slug(signature)}"
             mechanism = "pretool_guard"
             proposed = (
-                f"Stage a Codex PreToolUse guard that denies `{signature}` unless the same shell "
-                f"command runs `{required}` first."
+                f"Stage a Codex PreToolUse guard that denies `{signature}` unless the shell "
+                f"command exactly matches the reviewed `{required} && {signature}` sequence."
             )
             metadata["creates_new_tool"] = True
         elif any(correction and _rule_like_correction(correction) for _, _, _, correction in occurrences):

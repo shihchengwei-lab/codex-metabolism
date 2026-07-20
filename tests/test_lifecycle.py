@@ -71,6 +71,72 @@ class LifecycleTests(unittest.TestCase):
             self.assertEqual(allowed.returncode, 0)
             self.assertEqual(allowed.stdout, "")
 
+            adversarial_commands = (
+                "echo preflight && deploy production",
+                "preflight || deploy production",
+                'echo "preflight" && deploy production',
+                "$(preflight) && deploy production",
+                "preflight; deploy production",
+                "deploy production && preflight",
+                "preflight && deploy production && deploy production",
+            )
+            for command in adversarial_commands:
+                with self.subTest(command=command):
+                    result = subprocess.run(
+                        [sys.executable, str(installed)],
+                        input=json.dumps(
+                            {
+                                "hook_event_name": "PreToolUse",
+                                "tool_name": "Bash",
+                                "tool_input": {"command": command},
+                            }
+                        ),
+                        text=True,
+                        capture_output=True,
+                        check=False,
+                    )
+                    self.assertEqual(result.returncode, 0)
+                    self.assertEqual(
+                        json.loads(result.stdout)["hookSpecificOutput"][
+                            "permissionDecision"
+                        ],
+                        "deny",
+                    )
+
+            whitespace_variant = subprocess.run(
+                [sys.executable, str(installed)],
+                input=json.dumps(
+                    {
+                        "hook_event_name": "PreToolUse",
+                        "tool_name": "Bash",
+                        "tool_input": {
+                            "command": "  preflight   &&   deploy   production  "
+                        },
+                    }
+                ),
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(whitespace_variant.returncode, 0)
+            self.assertEqual(whitespace_variant.stdout, "")
+
+            unrelated = subprocess.run(
+                [sys.executable, str(installed)],
+                input=json.dumps(
+                    {
+                        "hook_event_name": "PreToolUse",
+                        "tool_name": "Bash",
+                        "tool_input": {"command": "echo preflight"},
+                    }
+                ),
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(unrelated.returncode, 0)
+            self.assertEqual(unrelated.stdout, "")
+
     def test_retirement_archives_instead_of_deleting_and_reject_only_changes_staging(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -162,7 +228,7 @@ class LifecycleTests(unittest.TestCase):
                     session_records(
                         f"release-{index}",
                         failed_command="release project",
-                        correction="Use $release:workflow and verify the contextual checklist.",
+                        correction="No. Use $release:workflow and verify the contextual checklist.",
                         skill_name="release:workflow",
                     ),
                 )
