@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codex-metabolism"
+version = "0.1.0"
+description = "Evidence-driven collaboration intervention metabolism for Codex"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Codex Metabolism contributors" }]
+keywords = ["codex", "agent-skills", "developer-tools", "agents-md", "hooks"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = []
+
+[project.scripts]
+codex-metabolism = "codex_metabolism.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["codex_metabolism*"]

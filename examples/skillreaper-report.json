@@ -1,0 +1,31 @@
+{
+  "GeneratedAt": "2026-07-20T10:00:00Z",
+  "WindowDays": 7,
+  "Sessions": 12,
+  "MalformedLines": 0,
+  "Warnings": [],
+  "Rows": [
+    {
+      "Category": "skill",
+      "Name": "healthy-skill",
+      "Platform": "codex",
+      "Source": "personal",
+      "Path": "examples/demo-home/.agents/skills/healthy-skill",
+      "Removable": true,
+      "Uses": 4,
+      "Verdict": "KEEP",
+      "Reason": "used"
+    },
+    {
+      "Category": "skill",
+      "Name": "old-unused",
+      "Platform": "codex",
+      "Source": "personal",
+      "Path": "examples/demo-home/.agents/skills/old-unused",
+      "Removable": true,
+      "Uses": 0,
+      "Verdict": "REAP",
+      "Reason": "unused"
+    }
+  ]
+}

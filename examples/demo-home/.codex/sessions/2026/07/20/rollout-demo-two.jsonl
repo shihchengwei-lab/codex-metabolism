@@ -1,0 +1,10 @@
+{"type":"session_meta","payload":{"session_id":"demo-two","timestamp":"2026-07-20T09:00:00Z","cwd":"C:/demo/repo","cli_version":"0.144.5"}}
+{"type":"turn_context","payload":{"model":"gpt-5.6","cwd":"C:/demo/repo"}}
+{"type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Deploy production again"}]}}
+{"type":"response_item","payload":{"type":"custom_tool_call","call_id":"demo-two-fail","name":"functions.exec","input":"{\"command\":\"deploy production\"}"}}
+{"type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"demo-two-fail","output":"Script failed\nExit code: 1\nOutput:\npreflight required"}}
+{"type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"No. Run `preflight` before `deploy production`."}]}}
+{"type":"response_item","payload":{"type":"custom_tool_call","call_id":"demo-two-check","name":"functions.exec","input":"{\"command\":\"preflight\"}"}}
+{"type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"demo-two-check","output":"Script completed\nExit code: 0\nOutput:\nok"}}
+{"type":"response_item","payload":{"type":"custom_tool_call","call_id":"demo-two-success","name":"functions.exec","input":"{\"command\":\"deploy production\"}"}}
+{"type":"response_item","payload":{"type":"custom_tool_call_output","call_id":"demo-two-success","output":"Script completed\nExit code: 0\nOutput:\ndeployed"}}

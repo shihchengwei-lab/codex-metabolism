@@ -1,0 +1,32 @@
+[
+  {
+    "kind": "oss",
+    "name": "thousandflowers/skillreaper",
+    "description": "Evidence-based skill inventory, lifecycle verdicts, and reversible quarantine for coding agents.",
+    "url": "https://github.com/thousandflowers/skillreaper",
+    "license": "MIT",
+    "updated_at": "2026-07-20",
+    "stars": 0,
+    "source": "manually-reviewed-demo-snapshot"
+  },
+  {
+    "kind": "oss",
+    "name": "tobitege/codlogs",
+    "description": "Read-only Codex session log explorer with bounded export and sanitization.",
+    "url": "https://github.com/tobitege/codlogs",
+    "license": "MIT",
+    "updated_at": "2026-07-20",
+    "stars": 0,
+    "source": "manually-reviewed-demo-snapshot"
+  },
+  {
+    "kind": "oss",
+    "name": "pingchesu/hermes-curator-evolver",
+    "description": "Evidence-backed dry-run proposals for evolving agent skills with human review.",
+    "url": "https://github.com/pingchesu/hermes-curator-evolver",
+    "license": "MIT",
+    "updated_at": "2026-07-20",
+    "stars": 0,
+    "source": "manually-reviewed-demo-snapshot"
+  }
+]

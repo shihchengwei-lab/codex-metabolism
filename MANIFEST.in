@@ -1,0 +1,4 @@
+include README.zh-TW.md
+recursive-include docs *.md
+recursive-include examples *
+global-exclude __pycache__ *.py[cod]
