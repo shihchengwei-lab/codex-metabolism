@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Iterable
 
 from .agents_review import managed_region
+from .decide import friction_funnel
 from .models import Decision, Observation
 from .names import safe_name
 
@@ -90,12 +91,78 @@ def _configured_plugin_count(observation: Observation) -> int:
     )
 
 
-def _report(observation: Observation, decisions: list[Decision], generated_at: datetime) -> str:
+def _review_guidance(funnel: dict[str, int]) -> list[dict[str, object]]:
+    guidance: list[dict[str, object]] = []
+    interrupted = funnel["interrupted_turns"]
+    if interrupted:
+        guidance.append(
+            {
+                "signal": "interruption",
+                "count": interrupted,
+                "authority": "advisory",
+                "recommendation": (
+                    "Inspect interruption context before staging an intervention; "
+                    "an interrupted turn alone does not prove agent error."
+                ),
+            }
+        )
+    feedback = funnel["observed_user_feedback_candidates"]
+    if feedback:
+        guidance.append(
+            {
+                "signal": "user_feedback",
+                "count": feedback,
+                "authority": "advisory",
+                "recommendation": (
+                    "Review feedback candidates for recurring task families; "
+                    "a language match alone cannot create or patch an intervention."
+                ),
+            }
+        )
+    recoveries = funnel["same_command_recoveries"]
+    corrected = funnel["recoveries_with_recognized_correction"]
+    if recoveries > corrected:
+        guidance.append(
+            {
+                "signal": "recovery_gap",
+                "count": recoveries - corrected,
+                "authority": "advisory",
+                "recommendation": (
+                    "Do not lower the correction gate based on recovery alone; "
+                    "inspect parser coverage or gather clearer user evidence."
+                ),
+            }
+        )
+    return guidance
+
+
+def _report(
+    observation: Observation,
+    decisions: list[Decision],
+    generated_at: datetime,
+    *,
+    semantic_suggestions: list[dict[str, object]] | None = None,
+    semantic_candidate_count: int = 0,
+    advisor_model: str | None = None,
+) -> str:
     coverage = observation.coverage
+    funnel = friction_funnel(observation)
+    guidance = _review_guidance(funnel)
+    if advisor_model is not None:
+        mode_line = (
+            "Review mode: **model-assisted** — GPT-5.6 interprets bounded collaboration "
+            "evidence; deterministic code enforces evidence, schema, staging, and mutation gates."
+        )
+    else:
+        mode_line = (
+            "Review mode: **deterministic fallback** — Semantic interpretation was not run. "
+            "After reviewing the data disclosure, rerun explicitly with `--advisor codex`."
+        )
     lines = [
         "# Codex Metabolism Review",
         "",
         f"Generated: {generated_at.isoformat()}",
+        mode_line,
         f"Window: {observation.days:g} days · {len(observation.sessions)} sessions",
         (
             "Coverage: "
@@ -111,9 +178,84 @@ def _report(observation: Observation, decisions: list[Decision], generated_at: d
         "> Outcomes and friction are weak-signal inferences unless an evidence item is marked hard. "
         "A missing parser signal is never treated as proof of non-use.",
         "",
-        "## Decisions",
+        "## Friction detection funnel",
+        "",
+        (
+            "- Observed user feedback candidates: "
+            f"{funnel['observed_user_feedback_candidates']}"
+        ),
+        f"- Structured interrupted turns: {funnel['interrupted_turns']}",
+        f"- Tool failures with a command: {funnel['tool_failures_with_command']}",
+        f"- Same-command recoveries: {funnel['same_command_recoveries']}",
+        (
+            "- Recoveries with a recognized user correction: "
+            f"{funnel['recoveries_with_recognized_correction']}"
+        ),
+        (
+            "- Recurring patterns meeting the decision threshold: "
+            f"{funnel['recurring_patterns_meeting_threshold']}"
+        ),
+        "",
+        (
+            "> Zero qualifying patterns does not mean zero collaboration friction. "
+            "It means no observed pattern passed every conservative detector gate."
+        ),
+        "",
+        "## Review guidance",
+        "",
+        "> Guidance is non-authoritative and never changes live state.",
         "",
     ]
+    if guidance:
+        for item in guidance:
+            lines.append(
+                f"- **{item['signal']} ({item['count']}):** {item['recommendation']}"
+            )
+    else:
+        lines.append("- No bounded guidance was generated from the observed signals.")
+    lines.extend(
+        [
+        "",
+        ]
+    )
+    if advisor_model is not None:
+        lines.extend(
+            [
+                "## GPT-5.6 collaboration-layer review (non-authoritative)",
+                "",
+                (
+                    f"> Opt-in analysis sent {semantic_candidate_count} bounded, pseudonymous "
+                    f"candidates to OpenAI model `{advisor_model}`. Suggestions require human "
+                    "review and cannot mutate live state."
+                ),
+                "",
+            ]
+        )
+        if semantic_suggestions:
+            for suggestion in semantic_suggestions:
+                lines.extend(
+                    [
+                        (
+                            f"- **{suggestion['opportunity_type']} → "
+                            f"{suggestion['suggested_layer']}** "
+                            f"({suggestion['confidence']}): {suggestion['recommendation']}"
+                        ),
+                        f"  - Why: {suggestion['reasoning']}",
+                        (
+                            "  - Evidence: "
+                            + ", ".join(f"`{item}`" for item in suggestion["evidence_ids"])
+                        ),
+                    ]
+                )
+        else:
+            lines.append("- GPT-5.6 abstained from proposing a semantic recommendation.")
+        lines.append("")
+    lines.extend(
+        [
+        "## Decisions",
+        "",
+        ]
+    )
     if not decisions:
         lines.append("No evidence met the decision thresholds.")
         return "\n".join(lines) + "\n"
@@ -355,14 +497,23 @@ def stage_review(
     output_dir: Path | str,
     *,
     generated_at: datetime | None = None,
+    semantic_suggestions: Iterable[dict[str, object]] | None = None,
+    semantic_candidate_count: int = 0,
+    advisor_model: str | None = None,
 ) -> Path:
     output = Path(output_dir)
     generated = _now(generated_at)
     items = list(decisions)
+    semantic_items = list(semantic_suggestions or [])
+    funnel = friction_funnel(observation)
+    guidance = _review_guidance(funnel)
     output.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema_version": 1,
         "generated_at": generated.isoformat(),
+        "review_mode": (
+            "model_assisted" if advisor_model is not None else "deterministic_fallback"
+        ),
         "observation": {
             "codex_home": observation.codex_home,
             "project_root": observation.project_root,
@@ -395,11 +546,31 @@ def stage_review(
                 for document in observation.agents_documents
             ],
             "coverage": observation.coverage.to_dict(),
+            "friction_detection_funnel": funnel,
+        },
+        "review_guidance": guidance,
+        "semantic_advisor": semantic_items,
+        "semantic_advisor_meta": {
+            "enabled": advisor_model is not None,
+            "model": advisor_model,
+            "candidate_count": semantic_candidate_count,
+            "authority": "non_authoritative",
+            "human_review_required": True,
         },
         "decisions": [decision.to_dict() for decision in items],
     }
     _atomic_json(output / "decisions.json", payload)
-    _atomic_text(output / "report.md", _report(observation, items, generated))
+    _atomic_text(
+        output / "report.md",
+        _report(
+            observation,
+            items,
+            generated,
+            semantic_suggestions=semantic_items,
+            semantic_candidate_count=semantic_candidate_count,
+            advisor_model=advisor_model,
+        ),
+    )
     for decision in items:
         if decision.readiness != "ready" or decision.status != "proposed":
             continue

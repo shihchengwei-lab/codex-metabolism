@@ -10,6 +10,108 @@ from tests.helpers import NOW, make_deploy_home, session_records, write_jsonl, w
 
 
 class ObserveTests(unittest.TestCase):
+    def test_observes_structured_turn_interruptions_without_treating_them_as_corrections(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home = root / ".codex"
+            skills_root = root / ".agents" / "skills"
+            records = session_records("interrupted-turn")
+            records.insert(
+                3,
+                {
+                    "type": "event_msg",
+                    "payload": {
+                        "type": "turn_aborted",
+                        "turn_id": "turn-1",
+                        "reason": "interrupted",
+                        "duration_ms": 1200,
+                    },
+                },
+            )
+            write_jsonl(
+                codex_home / "sessions" / "2026" / "07" / "20" / "rollout-interrupt.jsonl",
+                records,
+            )
+
+            snapshot = observe(
+                codex_home, [skills_root], days=7, now=NOW, project_root=root
+            )
+
+            session = snapshot.sessions[0]
+            self.assertEqual(session.interrupted_turns, 1)
+            self.assertEqual(len(session.corrections), 1)
+
+    def test_recognizes_natural_explicit_user_corrections(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home = root / ".codex"
+            skills_root = root / ".agents" / "skills"
+            phrases = [
+                "不是 session-analytics，我是問 Codex Metabolism。",
+                "欸，不對，請保留原本的結構。",
+                "你的輸出結構亂掉了，請重新整理。",
+            ]
+            records = session_records("natural-corrections")
+            records[5:5] = [
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": phrase}],
+                    },
+                }
+                for phrase in phrases
+            ]
+            write_jsonl(
+                codex_home / "sessions" / "2026" / "07" / "20" / "rollout-natural.jsonl",
+                records,
+            )
+
+            snapshot = observe(
+                codex_home, [skills_root], days=7, now=NOW, project_root=root
+            )
+
+            corrections = {item.text for item in snapshot.sessions[0].corrections}
+            feedback = {item.text for item in snapshot.sessions[0].feedback_candidates}
+            self.assertTrue(set(phrases[:2]).issubset(corrections))
+            self.assertNotIn(phrases[2], corrections)
+            self.assertTrue(set(phrases).issubset(feedback))
+
+    def test_correction_after_thirty_messages_is_not_dropped(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home = root / ".codex"
+            skills_root = root / ".agents" / "skills"
+            records = session_records(
+                "long-session",
+                correction="不是這樣，先執行 `preflight` 再執行 `deploy production`。",
+            )
+            records[5:5] = [
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": f"Follow-up {index}"}],
+                    },
+                }
+                for index in range(35)
+            ]
+            write_jsonl(
+                codex_home / "sessions" / "2026" / "07" / "20" / "rollout-long.jsonl",
+                records,
+            )
+
+            snapshot = observe(
+                codex_home, [skills_root], days=7, now=NOW, project_root=root
+            )
+
+            self.assertLessEqual(len(snapshot.sessions[0].messages), 30)
+            self.assertTrue(
+                any(item.text.startswith("不是這樣") for item in snapshot.sessions[0].corrections)
+            )
+
     def test_observes_realistic_codex_jsonl_without_claiming_structured_skill_usage(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

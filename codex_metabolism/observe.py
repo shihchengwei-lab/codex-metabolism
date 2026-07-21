@@ -30,8 +30,14 @@ CORRECTION_RE = re.compile(
     r"|^\s*wrong\b"
     r"|^\s*instead\s*[.!,:;?\-—]"
     r"|^\s*(?:please\s+)?(?:do\s+not|don't)\b"
-    r"|^\s*(?:不對|不要|改成|修正|請(?:改成|修正))"
+    r"|^\s*(?:(?:欸|咦|嗯|啊|蛤)[，,！!？?\s]*)?"
+    r"(?:不是|不對|不要|改成|修正|請改成|請修正)"
     r")",
+    re.IGNORECASE,
+)
+QUALITY_FEEDBACK_RE = re.compile(
+    r"^\s*.{0,24}(?:輸出|結構|影片|字幕|旁白).{0,40}"
+    r"(?:不行|不對|錯|亂掉|太長|太多|看不下去|糊在一起)",
     re.IGNORECASE,
 )
 SKILL_MENTION_RE = re.compile(r"\$([a-z0-9][a-z0-9_-]{1,80})", re.IGNORECASE)
@@ -132,6 +138,8 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
     meta: dict[str, Any] = {}
     model: str | None = None
     messages: list[UserMessage] = []
+    corrections: list[UserMessage] = []
+    feedback_candidates: list[UserMessage] = []
     seen_messages: set[str] = set()
     calls: dict[str, dict[str, Any]] = {}
     outputs: dict[str, tuple[int, Any]] = {}
@@ -139,6 +147,7 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
     parse_errors = 0
     structured_skill_events = 0
     heuristic_skill_events = 0
+    interrupted_turns = 0
     sequence = 0
 
     try:
@@ -168,20 +177,28 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
                     meta["session_id"] = payload.get("id")
             if top_type == "turn_context" and isinstance(payload.get("model"), str):
                 model = payload["model"]
+            if payload_type == "turn_aborted" and payload.get("reason") == "interrupted":
+                interrupted_turns += 1
 
             if payload_type == "user_message" and isinstance(payload.get("message"), str):
                 candidate_messages = [("user", payload["message"])]
             else:
                 candidate_messages = list(_walk_text(payload))
             for role, text in candidate_messages:
-                if role not in (None, "user") or len(messages) >= MAX_MESSAGES:
+                if role not in (None, "user"):
                     continue
                 cleaned = _safe_text(text, MAX_TEXT).strip()
                 if not cleaned or cleaned in seen_messages or cleaned.startswith("<"):
                     continue
                 seen_messages.add(cleaned)
                 message = UserMessage(sequence=sequence, text=cleaned)
-                messages.append(message)
+                if len(messages) < MAX_MESSAGES:
+                    messages.append(message)
+                if CORRECTION_RE.search(cleaned):
+                    corrections.append(message)
+                    feedback_candidates.append(message)
+                elif QUALITY_FEEDBACK_RE.search(cleaned):
+                    feedback_candidates.append(message)
                 for name in SKILL_MENTION_RE.findall(cleaned):
                     skill_signals.add(name.lower())
                     heuristic_skill_events += 1
@@ -222,7 +239,6 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
                 output_excerpt=_safe_text(output, MAX_OUTPUT),
             )
         )
-    corrections = [message for message in messages if CORRECTION_RE.search(message.text)]
     session = SessionObservation(
         session_id=str(meta.get("session_id") or path.stem),
         timestamp=meta.get("timestamp"),
@@ -232,6 +248,8 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
         source_file=str(path),
         messages=messages,
         corrections=corrections,
+        feedback_candidates=feedback_candidates,
+        interrupted_turns=interrupted_turns,
         tool_executions=tools,
         skill_signals=skill_signals,
         parse_errors=parse_errors,

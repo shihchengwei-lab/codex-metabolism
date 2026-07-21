@@ -12,23 +12,23 @@ This is the production plan for a **2:40 English voiceover** demo: 16:9, 1080p, 
 
 | Time | Shot | What the judge sees |
 |---|---|---|
-| 0:00–0:14 | Compounding pain | Three quick beats: first failure adds a rule; the same failure returns and adds a skill; the old intervention remains. End on `MORE STATE. SAME FRICTION.` Label it synthetic. |
-| 0:14–0:32 | Addition vs metabolism | Put `ADD MORE` opposite `METABOLIZE`, then hold the abstract slime-mold network through four readable phases: gray candidates; amber future-session evidence; the useful path brightening green; and the final phase fades unused branches almost away. |
-| 0:32–0:45 | Scope and closed loop | Show the full Observe → Stage → human approval → Validate → Keep/Repair/Archive loop. State that this is not model training and uses synthetic sessions. |
+| 0:00–0:14 | Work, memory, friction | Three quick beats: human and Codex finish a difficult task; its path becomes a skill candidate; a later session still exposes friction while old interventions remain. End on `USEFUL WORK SHOULD GROW. FRICTION SHOULD NOT.` Label it synthetic. |
+| 0:14–0:32 | Addition vs metabolism | Put `CREATE SKILL` inside the larger `METABOLIZE` loop, then hold the slime-mold network through four phases: useful work opens a path; future-session evidence arrives; the useful path brightens green; unsupported branches fade. |
+| 0:32–0:45 | Shared collaboration loop | Show Complete work → Capture workflow → Future sessions → AI review → human approval → Keep/Repair/Archive. State that this changes the collaboration layer, not model weights, and that the replay is synthetic. |
 | 0:45–0:59 | Conservative first review | Show failure → explicit correction → same-command recovery across two sessions, then run `python examples/run_closed_loop_demo.py` and pause on the four staged decisions. |
 | 0:59–1:14 | Build less | Show the five-rung adoption ladder and the blocked-create state. |
 | 1:14–1:28 | Mechanical trust boundary | Show the exact reviewed `preflight && deploy` sequence, adversarial denials, approval, and reversibility. |
 | 1:28–1:43 | Validate | Show `KEEP HARNESS (VALIDATED)` and duplicate-proposal suppression. |
 | 1:43–1:58 | Prune | Show evidence-gated `KEEP`, `RETIRE_CANDIDATE`, archive, and restore. |
 | 1:58–2:11 | Honest evaluation | Show 27 synthetic cases: 8 TP, 0 FP, 8 FN, 11 TN; precision 1.0 and recall 0.5. |
-| 2:11–2:32 | Codex and GPT-5.6 | Show cross-platform CI and the live synthetic advisor run, `--advisor codex --advisor-model gpt-5.6-sol`; its `KEEP RULE` disagreement remains non-authoritative. |
+| 2:11–2:32 | Codex and GPT-5.6 | Show `workflow_candidate` beside feedback/interruption evidence, then the live advisor command: `--advisor codex --advisor-model gpt-5.6-sol`. GPT-5.6 interprets; deterministic code validates evidence and schema; the human remains the mutation gate. |
 | 2:32–2:40 | Close | Product name, repository URL, MIT license, and the one-line contrast. |
 
 Keep subtitles to at most two short lines. Use hard cuts, large type, and one claim per shot; do not scroll a report during narration.
 
 ## Slime-mold visual language
 
-The metaphor is procedural, not biological: recurring friction opens candidate paths; future-session evidence reinforces a path that works and withdraws support from one that does not. Do not imply that one later success proves causality.
+The metaphor is procedural, not biological: completed work can open a reusable path; future-session evidence reveals whether it helps or causes friction; review reinforces, repairs, or withdraws it. Do not imply that tool success proves task completion or that one later success proves causality.
 
 ## Capture and verification
 

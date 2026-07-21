@@ -6,11 +6,27 @@
 
 [![CI](https://github.com/shihchengwei-lab/codex-metabolism/actions/workflows/ci.yml/badge.svg)](https://github.com/shihchengwei-lab/codex-metabolism/actions/workflows/ci.yml)
 
-**An evidence-driven lifecycle manager for the persistent interventions around Codex.** It turns recurring collaboration friction into the smallest useful change, checks that change against later sessions, and stages its retirement when it stops earning its cost.
+**A shared improvement loop for humans and coding agents.** Human and AI improve the collaboration layer together: completed, high-effort work can become a reusable workflow; future sessions reveal where that workflow or the surrounding environment still causes friction; review then proposes what to add, repair, keep, or retire.
 
-Codex setups accumulate rules, skills, hooks, scripts, and tools. Codex Metabolism is **not another memory store, skill generator, or session dashboard**: it decides what deserves to be added, where it belongs, whether it worked, and whether it should remain. It **does not fine-tune or update model weights**. What becomes personal is the inspectable procedural environment around the model. **Same Codex, different metabolism.**
+Codex setups accumulate rules, skills, hooks, scripts, and tools. Codex Metabolism is **not another memory store, skill generator, or session dashboard**: it connects skill formation to later review and subtraction. It **does not fine-tune model weights**. What grows is the inspectable procedural environment shared by one person and their Agent. **Same Codex, different metabolism.**
 
-## One failure, metabolized
+## Model-assisted review (recommended)
+
+```powershell
+codex-metabolism review --days 7 --advisor codex
+```
+
+**GPT-5.6 interprets collaboration opportunities; deterministic code constrains the evidence and safety boundary; the human decides.** Alongside feedback and interruptions, substantial tool-use sessions become `workflow_candidate`s—possible reusable work, never claimed as completed tasks. GPT-5.6 can recommend capturing a reusable workflow as a `SKILL`, removing friction with a `HARNESS` or `TOOL`, using a bounded `RULE`, or doing nothing. Its output never becomes a live mutation.
+
+## Deterministic fallback
+
+```powershell
+codex-metabolism review --days 7 --advisor none
+```
+
+This local-only mode reports coverage, hard signals, abstention reasons, and exact-pattern decisions without semantic interpretation. It is useful for privacy-sensitive or unauthenticated environments, but it is the fallback—not the complete product experience.
+
+## One failure, metabolized — synthetic replay
 
 **Before:** two sessions repeated the same failed `deploy production` command and the same user correction: run `preflight` first. A useful skill and `old-unused` both looked permanent.
 
@@ -47,8 +63,9 @@ The command uses isolated synthetic fixtures and prints the retained artifact pa
 | Cross-layer replay | `python examples/run_friction_cases_demo.py` | existing tool and contextual skill paths—not only command-order rules |
 | Imperfect evidence | `python examples/run_messy_evidence_demo.py` | action once, abstain twice, expose parser coverage, block unsafe retirement |
 | Detector boundary | `python examples/run_detector_evaluation.py` | 27 labeled synthetic cases: precision `1.000`, recall `0.500`, zero false positives |
+| Real-session review | [aggregate report](docs/REAL_SESSION_REVIEW.md) | 213/213 files parsed; friction observed; zero unsupported changes |
 
-[Detector boundary evaluation](docs/EVALUATION.md) · [Devpost draft](docs/DEVPOST.md) · [Video production pack](docs/DEMO_VIDEO.md)
+[Detector boundary evaluation](docs/EVALUATION.md) · [Real-session review](docs/REAL_SESSION_REVIEW.md) · [Devpost draft](docs/DEVPOST.md) · [Video production pack](docs/DEMO_VIDEO.md)
 
 ## Two more real-world friction patterns
 
@@ -88,19 +105,22 @@ A memory store decides what to remember. A generator drafts another skill. A das
 
 Five constraints keep it small: existing before new; mechanical before prose; evidence before permanence; subtraction counts as improvement; humans own every live mutation.
 
-## The metabolic loop
+## The human–AI metabolic loop
 
 ```text
-Codex collaboration sessions
+human + Codex complete work
+          |
+          v
+reusable workflow candidate -> proposed SKILL
+          |
+          v
+future sessions -> use, feedback, interruption, recovery
           |
           v
 manual review or opt-in scheduled trigger
           |
           v
-failure -> correction -> same-command success in 2 sessions
-          |
-          v
-necessity -> built-in -> installed -> repo -> external ecosystem
+GPT-5.6 review -> necessity -> built-in -> installed -> repo -> ecosystem
           |
           v
 CREATE / PATCH / KEEP / RETIRE_CANDIDATE
@@ -114,6 +134,8 @@ future sessions -> VALIDATED / INEFFECTIVE / IDLE_CANDIDATE
 ```
 
 Parser failure is never re-labelled as non-use. Later silence is not proof of quality. The detector is deliberately conservative; the metabolic contribution is the inspectable evidence → intervention → later evaluation chain around it.
+
+**Current boundary:** ordinary real-session reviews provide observation, abstention reasons, review guidance, and staged recommendations. The full loop below is implemented as lifecycle machinery and demonstrated by synthetic replay; long-term real-world validation remains future work.
 
 ## Who it is for
 
@@ -129,7 +151,7 @@ Codex with GPT-5.6 inspected real local JSONL variants, separated hard evidence 
 
 The human collaborator expanded metabolism beyond skills, required mechanical safeguards before prose, capped managed rules, protected human-owned `AGENTS.md`, chose synthetic public data, and retained explicit approval for every mutation.
 
-The deterministic judge demo intentionally makes no model call. The optional advisor uses GPT-5.6 through existing Codex authentication and remains non-authoritative.
+The deterministic judge demo intentionally makes no model call. This lets judges reproduce the lifecycle without authentication. Real model-assisted review uses GPT-5.6 through existing Codex authentication and remains non-authoritative.
 
 ## Install and review local history
 
@@ -137,10 +159,10 @@ The deterministic judge demo intentionally makes no model call. The optional adv
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -e .
-codex-metabolism review --days 7 --search-oss --export-evidence friction-evidence.csv
+codex-metabolism review --days 7 --advisor codex --export-evidence friction-evidence.csv
 ```
 
-On macOS/Linux, activate with `source .venv/bin/activate`. Review scans recent `~/.codex/sessions/`, installed skills, repo assets, and active `AGENTS.md` scopes. It writes proposals only under `.codex-metabolism/`; reuse that directory so `interventions.jsonl` can connect approved changes to later evidence. `--export-evidence` is optional and exports only emitted decisions as structured, anonymized review evidence.
+On macOS/Linux, activate with `source .venv/bin/activate`. Review scans recent `~/.codex/sessions/`, installed skills, repo assets, and active `AGENTS.md` scopes. The report shows the full friction-detection funnel—including feedback candidates, failures, recoveries, recognized corrections, and recurring patterns—so zero qualifying patterns is never presented as zero friction. It writes proposals only under `.codex-metabolism/`; reuse that directory so `interventions.jsonl` can connect approved changes to later evidence. `--export-evidence` is optional and exports only emitted decisions as structured, anonymized review evidence.
 
 ## Keep the loop running — opt in
 
@@ -189,19 +211,19 @@ External tools are never downloaded, installed, disabled, or deleted automatical
 
 Every creation proposal records: necessity → Codex built-in → installed → repository → ecosystem. An unchecked ecosystem rung leaves a new `CREATE` as `needs_research`. `--search-oss` sends sanitized allowlisted keywords—not transcripts, paths, or credentials.
 
-[SkillReaper](https://github.com/thousandflowers/skillreaper) supplies complete skill lifecycle evidence; [codlogs](https://github.com/tobitege/codlogs) was evaluated as an existing session explorer; Hermes Agent inspired agent-managed skills. None is vendored.
+[SkillReaper](https://github.com/thousandflowers/skillreaper) supplies complete skill lifecycle evidence; [codlogs](https://github.com/tobitege/codlogs) was evaluated as an existing session explorer. The bounded semantic packet adapts the role-scoped sampling and privacy boundary from the author's MIT-licensed [session-analytics](https://github.com/shihchengwei-lab/session-analytics). None is vendored.
 
-## Optional live GPT-5.6 advisor
+The original inspirations were Hermes Agent's agent-managed skill creation, Claude Code Insights' session-level retrospective analysis, and session-analytics' evidence-based workflow review and pruning. SkillReaper was discovered later through the adoption ladder and is an integration, not an original inspiration.
 
-```powershell
-codex-metabolism review --days 7 --advisor codex --advisor-model gpt-5.6-sol
-```
+## Model-assisted safety contract
 
-The advisor is schema-bounded, read-only, and **non-authoritative**. A verified synthetic run took **48.5 seconds**: it agreed on `CREATE HARNESS`, challenged deterministic `PATCH RULE` with `KEEP RULE`, and could not bypass safety gates. Relevant bounded excerpts are sent to OpenAI only when this option is invoked.
+The GPT-5.6 interpreter is schema-bounded, ephemeral, read-only, and **non-authoritative**. It performs two jobs: challenge proposed deterministic changes, and analyze up to 24 bounded, pseudonymous workflow/friction candidates even when the strict detector abstains. GPT-5.6 may return at most eight evidence-citing recommendations; they remain separate from `CREATE`/`PATCH` decisions and cannot mutate live state. A verified synthetic run took **48.5 seconds**: it agreed on `CREATE HARNESS`, challenged deterministic `PATCH RULE` with `KEEP RULE`, and could not bypass safety gates. Relevant bounded excerpts are sent to OpenAI only when model-assisted review is explicitly invoked, and the CLI prints that disclosure before the call.
 
 ## Evidence and safety contract
 
 - JSONL is streamed with bounded excerpts; coverage failures stay unknown.
+- Substantial tool activity may nominate a reusable workflow, but cannot prove task completion; feedback and interrupted turns are weak friction candidates. None can create or patch an intervention by themselves.
+- GPT-5.6 semantic recommendations require cited candidate IDs and `human_review_required=true`; they never become decisions automatically.
 - Recurring friction requires two corrected same-command recoveries; no correction means abstain.
 - The demonstration guard permits only the exact reviewed `required && protected` sequence.
 - Review is stage-only; mutations are decision-ID and hash gated.
