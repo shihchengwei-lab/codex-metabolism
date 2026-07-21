@@ -52,6 +52,8 @@ Codex will:
 6. show the evidence, uncertainty, expected effect, rollback condition, exact diff, and generated approval digest;
 7. wait for explicit human approval before any live mutation.
 
+After the first user-initiated review, the Skill offers one optional convenience: a **native Scheduled task** shortly before your **weekly usage reset**. You provide the reset time because the tool cannot infer it reliably. The scheduled run may prepare and stage a review, but it cannot apply, record, retire, commit, or push anything; findings wait in the Scheduled inbox for an interactive human decision. See the [stage-only task prompt](references/scheduled-review.md).
+
 ## The metabolic loop
 
 ```text
@@ -110,6 +112,16 @@ python examples/run_agent_first_demo.py --prepare-only --output-root .demo-live
 
 In a [fresh-Agent forward test](docs/FORWARD_TEST.md), an unfamiliar Codex Agent inspected the synthetic target, rejected the fixture's skill-shaped answer, and authored a smaller `PATCH / HARNESS` with a concrete patch that passed `git apply --check`. The runtime staged it and left the target unchanged.
 
+## Real-session evaluation
+
+The synthetic demo remains the fastest reproducible safety check. A separate public case study uses **real Codex sessions** from one seven-day window, with raw logs kept local and only manually paraphrased evidence committed:
+
+```bash
+python examples/run_real_session_evaluation.py
+```
+
+That run parsed 14/14 rollout files and found only six independent sessions: eight child-Agent fork/snapshot files and 210 dual-serialized user events had been inflating the evidence. It also exposed more than two thousand events in one session. The resulting runtime patch collapses those duplicates, accepts only explicit user-message sources, caps every session capsule at 160 events, and reports all sampling. The Agent then recommended one native scheduling patch and one honest no-change result because an existing rule already covered the observed behavior. Read the [method and claim boundary](docs/REAL_SESSION_EVALUATION.md).
+
 ## What can change?
 
 | Layer | Who implements it after approval? | Examples |
@@ -151,7 +163,7 @@ restore   restore an approved retired skill
 
 ## Current boundary
 
-Implemented today: neutral observation, valid zero-change reviews, Agent-authored proposal validation, approval-digest binding, human-gated Skill lifecycle, action-accurate non-skill receipts, convergent target histories, and reversible Skill archives.
+Implemented today: neutral observation with fork/event deduplication and disclosed sampling, valid zero-change reviews, Agent-authored proposal validation, approval-digest binding, human-gated Skill lifecycle, action-accurate non-skill receipts, convergent target histories, reversible Skill archives, and an opt-in native scheduled-review prompt.
 
 Not yet established: real-world precision/recall, causal improvement, automatic evaluation of an intervention, or long-term impact. A later Codex review can interpret new evidence and receipts, but **silence is not success** and the runtime does not manufacture a verdict.
 
@@ -162,6 +174,7 @@ This resembles unsupervised adaptation at the collaboration layer, but it is not
 ```powershell
 python -m unittest discover -s tests -v
 python examples/run_agent_first_demo.py
+python examples/run_real_session_evaluation.py
 python -m build
 ```
 

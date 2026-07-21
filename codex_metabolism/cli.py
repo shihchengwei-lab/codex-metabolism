@@ -50,6 +50,8 @@ def _observe(args: argparse.Namespace) -> int:
     print(
         f"Prepared {len(packet['sessions'])} neutral session capsules at {destination} "
         f"({coverage['files_parsed']}/{coverage['files_selected']} files parsed; "
+        f"{coverage['duplicate_session_files']} duplicate/fork files collapsed; "
+        f"{coverage['duplicate_user_events']} duplicate user events collapsed; "
         f"{coverage['parse_errors']} malformed lines)."
     )
     print("Codex must interpret the evidence and author proposals; the runtime made no decision.")

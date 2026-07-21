@@ -124,6 +124,9 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
     structured_skill_events = 0
     heuristic_skill_events = 0
     interrupted_turns = 0
+    duplicate_user_events = 0
+    last_user_text: str | None = None
+    last_user_sequence = -10
     sequence = 0
 
     try:
@@ -155,18 +158,34 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
             if payload_type == "turn_aborted" and payload.get("reason") == "interrupted":
                 interrupted_turns += 1
 
-            if payload_type == "user_message" and isinstance(payload.get("message"), str):
+            if (
+                top_type == "event_msg"
+                and payload_type == "user_message"
+                and isinstance(payload.get("message"), str)
+            ):
                 candidate_messages = [("user", payload["message"])]
-            else:
+            elif (
+                top_type == "response_item"
+                and payload_type == "message"
+                and payload.get("role") == "user"
+            ):
                 candidate_messages = list(_walk_text(payload))
+            else:
+                candidate_messages = []
             for role, text in candidate_messages:
-                if role not in (None, "user"):
+                if role != "user":
                     continue
                 cleaned = _safe_text(text, MAX_TEXT).strip()
                 if not cleaned or cleaned.startswith("<"):
                     continue
-                if len(messages) < MAX_MESSAGES:
-                    messages.append(UserMessage(sequence=sequence, text=cleaned))
+                if cleaned == last_user_text and sequence - last_user_sequence <= 2:
+                    duplicate_user_events += 1
+                    continue
+                last_user_text = cleaned
+                last_user_sequence = sequence
+                messages.append(UserMessage(sequence=sequence, text=cleaned))
+                if len(messages) > MAX_MESSAGES:
+                    messages.pop(0)
                 for name in SKILL_MENTION_RE.findall(cleaned):
                     skill_signals.add(name.lower())
                     heuristic_skill_events += 1
@@ -219,11 +238,23 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
             tool_executions=tools,
             skill_signals=skill_signals,
             parse_errors=parse_errors,
+            duplicate_user_events=duplicate_user_events,
         ),
         parse_errors,
         structured_skill_events,
         heuristic_skill_events,
     )
+
+
+def _primary_session_file(session: SessionObservation) -> bool:
+    """Prefer the root rollout over child-Agent snapshots that inherit its session id."""
+
+    return Path(session.source_file).stem.casefold().endswith(session.session_id.casefold())
+
+
+def _session_preference(session: SessionObservation) -> tuple[int, int, str]:
+    event_count = len(session.messages) + len(session.tool_executions) + session.interrupted_turns
+    return (int(_primary_session_file(session)), event_count, session.source_file.casefold())
 
 
 def _frontmatter(path: Path) -> tuple[str, str]:
@@ -362,16 +393,31 @@ def observe(
                     files.append(path)
             except OSError:
                 continue
-    sessions: list[SessionObservation] = []
-    errors = structured = heuristic = files_parsed = 0
+    parsed_sessions: list[tuple[SessionObservation, int, int]] = []
+    errors = files_parsed = 0
     for path in sorted(files):
         session, parse_errors, structured_events, heuristic_events = _parse_session(path)
         errors += parse_errors
-        structured += structured_events
-        heuristic += heuristic_events
         if session is not None:
-            sessions.append(session)
+            parsed_sessions.append((session, structured_events, heuristic_events))
             files_parsed += 1
+
+    selected_by_id: dict[str, tuple[SessionObservation, int, int]] = {}
+    for candidate in parsed_sessions:
+        session = candidate[0]
+        current_candidate = selected_by_id.get(session.session_id)
+        if current_candidate is None or _session_preference(session) > _session_preference(
+            current_candidate[0]
+        ):
+            selected_by_id[session.session_id] = candidate
+    selected = list(selected_by_id.values())
+    sessions = sorted(
+        (item[0] for item in selected),
+        key=lambda session: (session.timestamp or "", session.source_file.casefold()),
+    )
+    structured = sum(item[1] for item in selected)
+    heuristic = sum(item[2] for item in selected)
+    duplicate_user_events = sum(session.duplicate_user_events for session in sessions)
     invocation = (
         "partial"
         if errors
@@ -392,6 +438,9 @@ def observe(
         coverage=Coverage(
             files_selected=len(files),
             files_parsed=files_parsed,
+            unique_sessions=len(sessions),
+            duplicate_session_files=max(0, files_parsed - len(sessions)),
+            duplicate_user_events=duplicate_user_events,
             parse_errors=errors,
             skill_invocation=invocation,
             structured_skill_events=structured,

@@ -4,3 +4,5 @@ include agents/openai.yaml
 include references/*.md
 recursive-include docs *.md *.srt *.svg
 include examples/run_agent_first_demo.py
+include examples/run_real_session_evaluation.py
+include examples/anonymized-real-session-evaluation.json

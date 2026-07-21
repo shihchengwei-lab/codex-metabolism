@@ -8,6 +8,9 @@ from typing import Any
 class Coverage:
     files_selected: int = 0
     files_parsed: int = 0
+    unique_sessions: int = 0
+    duplicate_session_files: int = 0
+    duplicate_user_events: int = 0
     parse_errors: int = 0
     skill_invocation: str = "unavailable"
     structured_skill_events: int = 0
@@ -47,6 +50,7 @@ class SessionObservation:
     tool_executions: list[ToolExecution] = field(default_factory=list)
     skill_signals: set[str] = field(default_factory=set)
     parse_errors: int = 0
+    duplicate_user_events: int = 0
 
 
 @dataclass(slots=True)

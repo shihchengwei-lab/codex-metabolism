@@ -1,4 +1,4 @@
 interface:
   display_name: "Codex Metabolism"
   short_description: "Turn Codex history into reversible improvements"
-  default_prompt: "Use $codex-metabolism to review recent collaboration and stage zero to three evidence-backed improvements. Show exact artifacts and approval digests; do not apply or record anything until I approve that version."
+  default_prompt: "Use $codex-metabolism to review recent collaboration and stage zero to three evidence-backed improvements. Show exact artifacts and approval digests; do not apply or record anything until I approve that version. After my first manual review, offer an opt-in native weekly Scheduled task that remains stage-only."
