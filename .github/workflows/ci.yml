@@ -39,17 +39,8 @@ jobs:
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
 
-      - name: Run closed-loop demo
-        run: python examples/run_closed_loop_demo.py
-
-      - name: Run cross-layer friction demo
-        run: python examples/run_friction_cases_demo.py
-
-      - name: Run imperfect-evidence demo
-        run: python examples/run_messy_evidence_demo.py
-
-      - name: Run detector boundary evaluation
-        run: python examples/run_detector_evaluation.py
+      - name: Run Agent-first demo
+        run: python examples/run_agent_first_demo.py
 
       - name: Build distribution artifacts
         run: python -m build

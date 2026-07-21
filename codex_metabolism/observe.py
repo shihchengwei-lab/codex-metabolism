@@ -2,48 +2,28 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
-import shutil
-import tomllib
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
 from .models import (
-    Coverage,
     AgentsDocument,
+    Coverage,
     InstalledSkill,
     InterventionReceipt,
     Observation,
-    RepoAsset,
     SessionObservation,
     ToolExecution,
     UserMessage,
 )
 
 
-CORRECTION_RE = re.compile(
-    r"(?:"
-    r"^\s*no\s*(?:[.!,:;?\-—]|$)"
-    r"|^\s*wrong\b"
-    r"|^\s*instead\s*[.!,:;?\-—]"
-    r"|^\s*(?:please\s+)?(?:do\s+not|don't)\b"
-    r"|^\s*(?:(?:欸|咦|嗯|啊|蛤)[，,！!？?\s]*)?"
-    r"(?:不是|不對|不要|改成|修正|請改成|請修正)"
-    r")",
-    re.IGNORECASE,
-)
-QUALITY_FEEDBACK_RE = re.compile(
-    r"^\s*.{0,24}(?:輸出|結構|影片|字幕|旁白).{0,40}"
-    r"(?:不行|不對|錯|亂掉|太長|太多|看不下去|糊在一起)",
-    re.IGNORECASE,
-)
 SKILL_MENTION_RE = re.compile(r"\$([a-z0-9][a-z0-9_-]{1,80})", re.IGNORECASE)
 EXIT_CODE_RE = re.compile(r"(?i)exit\s+code\s*:\s*(-?\d+)")
 MAX_TEXT = 280
-MAX_MESSAGES = 30
+MAX_MESSAGES = 120
 MAX_OUTPUT = 240
 
 
@@ -59,8 +39,7 @@ def _safe_text(value: Any, limit: int) -> str:
             text = json.dumps(value, ensure_ascii=False)
         except TypeError:
             text = str(value)
-    text = text.replace("\x00", "")
-    return text[:limit]
+    return text.replace("\x00", "")[:limit]
 
 
 def _walk_text(node: Any, *, role: str | None = None) -> Iterable[tuple[str | None, str]]:
@@ -138,9 +117,6 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
     meta: dict[str, Any] = {}
     model: str | None = None
     messages: list[UserMessage] = []
-    corrections: list[UserMessage] = []
-    feedback_candidates: list[UserMessage] = []
-    seen_messages: set[str] = set()
     calls: dict[str, dict[str, Any]] = {}
     outputs: dict[str, tuple[int, Any]] = {}
     skill_signals: set[str] = set()
@@ -154,7 +130,6 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
         handle = path.open("r", encoding="utf-8", errors="replace")
     except OSError:
         return None, 1, 0, 0
-
     with handle:
         for line in handle:
             sequence += 1
@@ -188,17 +163,10 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
                 if role not in (None, "user"):
                     continue
                 cleaned = _safe_text(text, MAX_TEXT).strip()
-                if not cleaned or cleaned in seen_messages or cleaned.startswith("<"):
+                if not cleaned or cleaned.startswith("<"):
                     continue
-                seen_messages.add(cleaned)
-                message = UserMessage(sequence=sequence, text=cleaned)
                 if len(messages) < MAX_MESSAGES:
-                    messages.append(message)
-                if CORRECTION_RE.search(cleaned):
-                    corrections.append(message)
-                    feedback_candidates.append(message)
-                elif QUALITY_FEEDBACK_RE.search(cleaned):
-                    feedback_candidates.append(message)
+                    messages.append(UserMessage(sequence=sequence, text=cleaned))
                 for name in SKILL_MENTION_RE.findall(cleaned):
                     skill_signals.add(name.lower())
                     heuristic_skill_events += 1
@@ -219,12 +187,11 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
             elif payload_type in {"custom_tool_call_output", "function_call_output"}:
                 call_id = str(payload.get("call_id") or payload.get("id") or "")
                 outputs[call_id] = (sequence, payload.get("output"))
-            elif payload_type and "skill" in str(payload_type).lower():
+            elif isinstance(payload_type, str) and "skill" in payload_type.lower():
                 structured_skill_events += 1
 
     if not meta:
         return None, parse_errors, structured_skill_events, heuristic_skill_events
-
     tools: list[ToolExecution] = []
     for call_id, call in sorted(calls.items(), key=lambda item: item[1]["sequence"]):
         output_sequence, output = outputs.get(call_id, (call["sequence"], None))
@@ -239,22 +206,24 @@ def _parse_session(path: Path) -> tuple[SessionObservation | None, int, int, int
                 output_excerpt=_safe_text(output, MAX_OUTPUT),
             )
         )
-    session = SessionObservation(
-        session_id=str(meta.get("session_id") or path.stem),
-        timestamp=meta.get("timestamp"),
-        cwd=meta.get("cwd"),
-        cli_version=meta.get("cli_version"),
-        model=model,
-        source_file=str(path),
-        messages=messages,
-        corrections=corrections,
-        feedback_candidates=feedback_candidates,
-        interrupted_turns=interrupted_turns,
-        tool_executions=tools,
-        skill_signals=skill_signals,
-        parse_errors=parse_errors,
+    return (
+        SessionObservation(
+            session_id=str(meta.get("session_id") or path.stem),
+            timestamp=meta.get("timestamp"),
+            cwd=meta.get("cwd"),
+            cli_version=meta.get("cli_version"),
+            model=model,
+            source_file=str(path),
+            messages=messages,
+            interrupted_turns=interrupted_turns,
+            tool_executions=tools,
+            skill_signals=skill_signals,
+            parse_errors=parse_errors,
+        ),
+        parse_errors,
+        structured_skill_events,
+        heuristic_skill_events,
     )
-    return session, parse_errors, structured_skill_events, heuristic_skill_events
 
 
 def _frontmatter(path: Path) -> tuple[str, str]:
@@ -294,19 +263,14 @@ def _inventory_skills(
                 continue
             try:
                 resolved = skill_md.resolve()
+                content = skill_md.read_bytes()
+                stat = skill_md.stat()
             except OSError:
                 continue
             if resolved in seen:
                 continue
             seen.add(resolved)
             name, description = _frontmatter(skill_md)
-            try:
-                content = skill_md.read_bytes()
-                stat = skill_md.stat()
-            except OSError:
-                continue
-            age = max(0.0, (now.timestamp() - stat.st_mtime) / 86400)
-            protected = ".system" in skill_md.parts
             found.append(
                 InstalledSkill(
                     name=name,
@@ -314,151 +278,52 @@ def _inventory_skills(
                     path=str(skill_md),
                     root=str(root),
                     sha256=hashlib.sha256(content).hexdigest(),
-                    age_days=age,
-                    protected=protected,
+                    age_days=max(0.0, (now.timestamp() - stat.st_mtime) / 86400),
+                    protected=".system" in skill_md.parts,
                     usage_signals=counts[name.lower()],
                 )
             )
-    return sorted(found, key=lambda skill: (skill.name.lower(), skill.path.lower()))
-
-
-def _repo_assets(project_root: Path) -> list[RepoAsset]:
-    candidates: list[Path] = []
-    # AGENTS.md is reviewed as durable guidance, never mistaken for a mechanical repo asset.
-    for relative in (".codex/hooks.json", ".codex/config.toml", "package.json", "pyproject.toml"):
-        path = project_root / relative
-        if path.is_file():
-            candidates.append(path)
-    for dirname in (".codex/hooks", "scripts", "bin", "tools"):
-        folder = project_root / dirname
-        if folder.is_dir():
-            for path in folder.rglob("*"):
-                if path.is_file() and path.stat().st_size <= 128_000:
-                    candidates.append(path)
-    assets: list[RepoAsset] = []
-    seen: set[Path] = set()
-    for path in candidates:
-        try:
-            resolved = path.resolve()
-            if resolved in seen:
-                continue
-            seen.add(resolved)
-            text = path.read_text(encoding="utf-8", errors="replace")[:20_000]
-        except OSError:
-            continue
-        assets.append(
-            RepoAsset(
-                path=str(path),
-                kind="hook" if ".codex" in path.parts and "hooks" in str(path).lower() else "repo",
-                searchable_text=f"{path.name} {text}".lower(),
-            )
-        )
-    return assets
-
-
-def _installed_tools(sessions: Iterable[SessionObservation]) -> list[dict[str, Any]]:
-    """Resolve only command names already present in the selected session evidence."""
-    ignored = {
-        "cd",
-        "echo",
-        "export",
-        "set",
-        "set-item",
-        "source",
-        "test",
-    }
-    names: set[str] = set()
-    for session in sessions:
-        for execution in session.tool_executions:
-            for segment in re.split(r"&&|\|\||[;\r\n]", execution.command):
-                match = re.match(
-                    r"\s*(?:&\s*)?(?:\"([^\"]+)\"|'([^']+)'|([^\s]+))",
-                    segment,
-                )
-                if not match:
-                    continue
-                name = next((value for value in match.groups() if value), "").strip()
-                if name and name.casefold() not in ignored and "=" not in name:
-                    names.add(name)
-    tools: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for name in sorted(names, key=str.casefold):
-        located = shutil.which(name)
-        if not located:
-            continue
-        path = str(Path(located).resolve())
-        key = path.casefold()
-        if key in seen:
-            continue
-        seen.add(key)
-        tools.append(
-            {
-                "kind": "installed-command",
-                "name": Path(path).stem,
-                "description": f"Executable observed in session commands and resolved on PATH as {name}",
-                "path": path,
-                "status": "available",
-                "source": "session-command-path-probe",
-            }
-        )
-    return tools
-
-
-def _project_doc_limit(codex_home: Path, project_root: Path) -> int:
-    limit = 32_768
-    for path in (codex_home / "config.toml", project_root / ".codex" / "config.toml"):
-        if not path.is_file():
-            continue
-        try:
-            payload = tomllib.loads(path.read_text(encoding="utf-8"))
-            candidate = payload.get("project_doc_max_bytes")
-            if isinstance(candidate, int) and candidate > 0:
-                limit = candidate
-        except (OSError, UnicodeError, tomllib.TOMLDecodeError):
-            continue
-    return limit
+    return sorted(found, key=lambda item: (item.name.lower(), item.path.lower()))
 
 
 def _inventory_agents_documents(codex_home: Path, project_root: Path) -> list[AgentsDocument]:
-    limit = _project_doc_limit(codex_home, project_root)
     candidates: list[tuple[Path, str, int]] = []
     user_agents = codex_home / "AGENTS.md"
     if user_agents.is_file():
         candidates.append((user_agents, "user", 0))
     if project_root.is_dir():
+        ignored = {
+            ".git",
+            ".venv",
+            "node_modules",
+            "__pycache__",
+            ".codex-metabolism",
+            ".demo-review",
+            ".codex-metabolism-archive",
+        }
         for path in project_root.rglob("AGENTS.md"):
             relative = path.relative_to(project_root)
-            ignored = {
-                ".git",
-                ".venv",
-                "node_modules",
-                "__pycache__",
-                ".codex-metabolism",
-                ".demo-review",
-                ".codex-metabolism-archive",
-            }
             if any(part in ignored for part in relative.parts):
                 continue
             depth = max(0, len(relative.parts) - 1)
             candidates.append((path, "project" if depth == 0 else "nested", depth))
-
     documents: list[AgentsDocument] = []
     seen: set[Path] = set()
     for path, scope, depth in candidates:
         try:
             resolved = path.resolve()
-            if resolved in seen:
-                continue
-            seen.add(resolved)
             raw = path.read_bytes()
         except OSError:
             continue
+        if resolved in seen:
+            continue
+        seen.add(resolved)
         try:
-            content = raw.decode("utf-8")
-            decode_errors = 0
+            lines = raw.decode("utf-8").splitlines()
+            whole_document_available = True
         except UnicodeDecodeError:
-            content = raw.decode("utf-8", errors="replace")
-            decode_errors = 1
+            lines = raw.decode("utf-8", errors="replace").splitlines()
+            whole_document_available = False
         documents.append(
             AgentsDocument(
                 path=str(path),
@@ -466,11 +331,8 @@ def _inventory_agents_documents(codex_home: Path, project_root: Path) -> list[Ag
                 depth=depth,
                 content_sha256=hashlib.sha256(raw).hexdigest(),
                 byte_count=len(raw),
-                line_count=len(content.splitlines()),
-                codex_context_limit=limit,
-                whole_document_evaluated=decode_errors == 0,
-                content=content,
-                decode_errors=decode_errors,
+                line_count=len(lines),
+                whole_document_available=whole_document_available,
             )
         )
     return sorted(documents, key=lambda item: (item.scope, item.depth, item.path.casefold()))
@@ -483,18 +345,16 @@ def observe(
     days: float = 7,
     now: datetime | None = None,
     project_root: Path | str | None = None,
-    catalog_entries: list[dict[str, Any]] | None = None,
-    catalog_checked: bool = False,
     intervention_records: list[InterventionReceipt] | None = None,
 ) -> Observation:
-    now = now or _utc_now()
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=timezone.utc)
-    codex_home = Path(codex_home).expanduser()
-    project_root = Path(project_root or Path.cwd()).expanduser()
-    sessions_root = codex_home / "sessions"
-    cutoff = now.timestamp() - days * 86400
-    files = []
+    current = now or _utc_now()
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    home = Path(codex_home).expanduser()
+    project = Path(project_root or Path.cwd()).expanduser()
+    sessions_root = home / "sessions"
+    cutoff = current.timestamp() - days * 86400
+    files: list[Path] = []
     if sessions_root.is_dir():
         for path in sessions_root.rglob("rollout-*.jsonl"):
             try:
@@ -503,10 +363,7 @@ def observe(
             except OSError:
                 continue
     sessions: list[SessionObservation] = []
-    errors = 0
-    structured = 0
-    heuristic = 0
-    files_parsed = 0
+    errors = structured = heuristic = files_parsed = 0
     for path in sorted(files):
         session, parse_errors, structured_events, heuristic_events = _parse_session(path)
         errors += parse_errors
@@ -515,34 +372,31 @@ def observe(
         if session is not None:
             sessions.append(session)
             files_parsed += 1
-    if errors:
-        invocation = "partial"
-    elif structured:
-        invocation = "structured"
-    elif sessions:
-        invocation = "heuristic"
-    else:
-        invocation = "unavailable"
-    coverage = Coverage(
-        files_selected=len(files),
-        files_parsed=files_parsed,
-        parse_errors=errors,
-        skill_invocation=invocation,
-        structured_skill_events=structured,
-        heuristic_skill_events=heuristic,
-        catalog_checked=catalog_checked,
+    invocation = (
+        "partial"
+        if errors
+        else "structured"
+        if structured
+        else "heuristic"
+        if sessions
+        else "unavailable"
     )
-    roots = [Path(root) for root in skill_roots]
+    roots = [Path(root).expanduser() for root in skill_roots]
     return Observation(
-        codex_home=str(codex_home),
-        project_root=str(project_root),
+        codex_home=str(home),
+        project_root=str(project),
+        skill_roots=[str(root) for root in roots],
         days=days,
         sessions=sessions,
-        skills=_inventory_skills(roots, sessions, now),
-        repo_assets=_repo_assets(project_root),
-        catalog_entries=list(catalog_entries or []),
-        coverage=coverage,
-        installed_tools=_installed_tools(sessions),
-        agents_documents=_inventory_agents_documents(codex_home, project_root),
+        skills=_inventory_skills(roots, sessions, current),
+        coverage=Coverage(
+            files_selected=len(files),
+            files_parsed=files_parsed,
+            parse_errors=errors,
+            skill_invocation=invocation,
+            structured_skill_events=structured,
+            heuristic_skill_events=heuristic,
+        ),
+        agents_documents=_inventory_agents_documents(home, project),
         intervention_records=list(intervention_records or []),
     )

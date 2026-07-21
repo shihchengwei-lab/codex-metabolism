@@ -1,6 +1,6 @@
-"""Evidence-driven collaboration intervention metabolism for Codex."""
+"""Agent-first, human-gated metabolism for Codex collaboration."""
 
-from .models import Decision, Observation
+from .models import Observation
 
-__all__ = ["Decision", "Observation"]
-__version__ = "0.1.0"
+__all__ = ["Observation"]
+__version__ = "0.2.0"

@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Codex Metabolism Agent-first collaboration loop</title>
+  <desc id="desc">Recent sessions become neutral evidence. Codex interprets and authors zero to three proposals. The runtime validates exact artifacts and generates an approval digest. A human approves that version. Target histories and later evidence support no change, repair, retirement, or rollback.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07130f"/>
+      <stop offset="1" stop-color="#0c1b23"/>
+    </linearGradient>
+    <linearGradient id="live" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#65e6a7"/>
+      <stop offset="1" stop-color="#b6f36a"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8fe6bd"/>
+    </marker>
+    <style>
+      .title { font: 700 34px Inter, Segoe UI, sans-serif; fill: #f4fff8; }
+      .subtitle { font: 400 17px Inter, Segoe UI, sans-serif; fill: #a8c6ba; }
+      .role { font: 700 19px Inter, Segoe UI, sans-serif; letter-spacing: 1px; }
+      .label { font: 600 18px Inter, Segoe UI, sans-serif; fill: #eafff1; }
+      .small { font: 400 15px Inter, Segoe UI, sans-serif; fill: #b9d1c7; }
+      .micro { font: 600 13px Inter, Segoe UI, sans-serif; fill: #78988c; letter-spacing: .5px; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="640" rx="28" fill="url(#bg)"/>
+
+  <!-- Faded, unsupported branches -->
+  <g fill="none" stroke="#3c5a4f" stroke-width="5" stroke-linecap="round" opacity=".34">
+    <path d="M595 285 C530 345 500 420 445 480"/>
+    <path d="M445 480 C400 520 355 520 315 548"/>
+    <path d="M445 480 C480 520 500 535 535 566"/>
+    <path d="M602 285 C650 345 660 400 708 438"/>
+  </g>
+  <g fill="#527064" opacity=".42">
+    <circle cx="445" cy="480" r="9"/><circle cx="315" cy="548" r="7"/>
+    <circle cx="535" cy="566" r="6"/><circle cx="708" cy="438" r="7"/>
+  </g>
+  <text x="300" y="590" class="micro">UNSUPPORTED BRANCHES FADE</text>
+
+  <text x="62" y="68" class="title">Codex Metabolism</text>
+  <text x="62" y="97" class="subtitle">The Agent thinks. The runtime remembers and constrains. The human decides.</text>
+
+  <!-- Main metabolic path -->
+  <path d="M178 260 C230 190 280 190 328 238 S445 305 500 238 S630 175 685 238 S810 304 858 238 S970 190 1020 245"
+        fill="none" stroke="#2b654c" stroke-width="18" stroke-linecap="round" opacity=".65"/>
+  <path d="M178 260 C230 190 280 190 328 238 S445 305 500 238 S630 175 685 238 S810 304 858 238 S970 190 1020 245"
+        fill="none" stroke="url(#live)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow)" filter="url(#glow)"/>
+
+  <!-- Nodes -->
+  <g>
+    <circle cx="150" cy="270" r="72" fill="#102820" stroke="#4c806b" stroke-width="2"/>
+    <text x="150" y="250" text-anchor="middle" class="role" fill="#8fe6bd">SESSIONS</text>
+    <text x="150" y="277" text-anchor="middle" class="small">work · feedback</text>
+    <text x="150" y="299" text-anchor="middle" class="small">interruptions</text>
+  </g>
+
+  <g>
+    <rect x="282" y="171" width="170" height="132" rx="24" fill="#102735" stroke="#4f98bd" stroke-width="2"/>
+    <text x="367" y="208" text-anchor="middle" class="role" fill="#75cfff">RUNTIME</text>
+    <text x="367" y="238" text-anchor="middle" class="label">Observe</text>
+    <text x="367" y="263" text-anchor="middle" class="small">bounded evidence</text>
+    <text x="367" y="284" text-anchor="middle" class="small">zero decisions</text>
+  </g>
+
+  <g>
+    <circle cx="595" cy="238" r="94" fill="#123126" stroke="#84e7aa" stroke-width="3" filter="url(#glow)"/>
+    <text x="595" y="208" text-anchor="middle" class="role" fill="#b9ffce">CODEX AGENT</text>
+    <text x="595" y="244" text-anchor="middle" class="label">Interpret + Author</text>
+    <text x="595" y="270" text-anchor="middle" class="small">intent · similarity · design</text>
+    <text x="595" y="292" text-anchor="middle" class="small">existing before new</text>
+  </g>
+
+  <g>
+    <rect x="742" y="171" width="188" height="132" rx="24" fill="#102735" stroke="#4f98bd" stroke-width="2"/>
+    <text x="836" y="208" text-anchor="middle" class="role" fill="#75cfff">RUNTIME</text>
+    <text x="836" y="238" text-anchor="middle" class="label">Validate + Seal</text>
+    <text x="836" y="263" text-anchor="middle" class="small">evidence · path · hash</text>
+    <text x="836" y="284" text-anchor="middle" class="small">exact bytes + digest</text>
+  </g>
+
+  <g>
+    <circle cx="1050" cy="270" r="72" fill="#302514" stroke="#e3b75e" stroke-width="2"/>
+    <text x="1050" y="250" text-anchor="middle" class="role" fill="#ffd782">HUMAN</text>
+    <text x="1050" y="277" text-anchor="middle" class="label">Review diff</text>
+    <text x="1050" y="299" text-anchor="middle" class="small">approve or reject</text>
+  </g>
+
+  <!-- Receipt loop -->
+  <path d="M1050 350 C1040 455 935 516 820 514 C565 510 330 510 190 378"
+        fill="none" stroke="#77b89b" stroke-width="3" stroke-dasharray="8 9" marker-end="url(#arrow)"/>
+  <rect x="724" y="463" width="226" height="74" rx="18" fill="#102820" stroke="#4c806b"/>
+  <text x="837" y="492" text-anchor="middle" class="label">Approved mutation</text>
+  <text x="837" y="517" text-anchor="middle" class="small">receipt · archive · rollback</text>
+  <text x="345" y="496" class="micro">LATER EVIDENCE RETURNS TO THE LOOP</text>
+</svg>

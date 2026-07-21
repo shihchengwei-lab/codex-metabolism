@@ -1,4 +1,6 @@
+include SKILL.md
 include README.zh-TW.md
-recursive-include docs *.md *.srt *.svg *.png
-recursive-include examples *
-global-exclude __pycache__ *.py[cod]
+include agents/openai.yaml
+include references/*.md
+recursive-include docs *.md *.srt *.svg
+include examples/run_agent_first_demo.py
