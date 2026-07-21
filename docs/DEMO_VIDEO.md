@@ -1,71 +1,85 @@
-# Agent-first demo video production pack
+# Judge-first, event-driven demo video production pack
 
-This plan replaces the v0.1 detector/advisor story with the current **Agent-first** architecture. Target: 2:20–2:40, 16:9, 1080p, English voiceover, large captions, no copyrighted media.
+Target: about 2:02 and always under three minutes, 16:9, 1080p, English voiceover, large captions, no copyrighted media. The video must show a working product and audibly explain how Codex and GPT-5.6 were used.
 
-## One story only
+## The around-30-second contract
 
-Two sessions repeat the same deployment mistake using different words and commands while the collaboration environment keeps accumulating. The runtime preserves neutral evidence. The active Codex Agent recognizes one underlying workflow, checks existing capabilities, and authors a complete skill. The runtime seals exact bytes and generates an approval digest; the human approves that version; the next review sees the original evaluation contract and receipt history; rollback archives the skill.
+**Around 0:30, the judge has understood three complete ideas:** the repeated friction, why accumulation is not improvement, and how the collaboration loop closes.
 
-Do not show a deterministic detector making the recommendation. Do not introduce a second model as an advisor. **The Codex session on screen is the AI.**
+The first three caption cues stay on one **split screen**. The left shows only the current Codex session; the right visibly grows from one rule, to a rule plus Skill, to a rule plus Skill plus hook. Each repeated failure adds one retained patch, so the accumulation is an event rather than a static before/after comparison.
 
-## Shot list
-
-| Time | Shot | Judge takeaway |
+| Time | Story beat | Visible event |
 |---|---|---|
-| 0:00–0:13 | Split screen: the same user correction returns in two sessions; stale rules and skills pile up beside it | Repetition plus accumulation is the pain |
-| 0:13–0:29 | Slime-mold path opens, one useful route brightens, unused branches slowly fade | Metabolism means reinforcement and subtraction, not memory alone |
-| 0:29–0:43 | Three large cards: `CODEX — understand + author`, `RUNTIME — remember + constrain`, `HUMAN — approve + reverse` | The responsibility boundary is instantly clear |
-| 0:43–0:55 | Run `python examples/run_agent_first_demo.py --prepare-only --output-root <isolated-dir>` | Runtime produces evidence and explicitly reports zero semantic decisions |
-| 0:55–1:18 | In Codex, paste the printed `$codex-metabolism` prompt; show it grouping the differently worded sessions | GPT-5.6 performs the semantic work in the actual Agent surface |
-| 1:18–1:36 | Codex checks built-in → installed → repository → ecosystem, reuses the repository preflight, and writes the full `deploy-safely` skill | Existing before new; artifact is useful, not a generic template |
-| 1:36–1:52 | Show evidence IDs, uncertainty, expected effect, rollback condition, exact diff, and approval digest | Approval is bound to that version |
-| 1:52–2:05 | Stage succeeds; deliberately alter a staged byte in a quick inset and show the gate reject it; restore the reviewed bytes | Deterministic code is a firewall, not the brain |
-| 2:05–2:19 | Human approves the displayed digest in the isolated demo; show `ACTIVE` receipt with its evaluation contract, then approved rollback moving the skill into archive | Exact-version control and Skill reversibility are real |
-| 2:19–2:34 | Return to the bright slime-mold path and faded branches; overlay `SILENCE IS NOT SUCCESS` | Future evidence drives keep, repair, or withdrawal; no magic-effect claim |
-| 2:34–2:40 | Name, repository, `MIT`, `Agent thinks. Runtime remembers and constrains.` | Memorable close |
+| 0:00-0:12.3 | `FAIL -> PATCH -> FAIL -> PATCH` | One current session fails on the left while the right-side stack grows from rule, to Skill, to hook |
+| 0:12.3-0:19.5 | `CREATION IS NOT IMPROVEMENT` | The growing pile gives way to `REUSE / CREATE / PATCH / REVISIT / RETIRE_CANDIDATE` |
+| 0:19.5-0:34.1 | `CLOSE THE COLLABORATION LOOP` | Evidence reaches the Agent, a human gate, and the next session; only after the return path closes does the slime-mold path brighten and unsupported branches fade |
 
-Keep subtitles to one or two short lines. Use hard cuts and one claim per shot; never scroll a long report during narration.
+The opening must be readable rather than frantic. The loop diagram remains on screen until its return path lights and the narration says the loop is complete before the slime-mold transition.
 
-## Commands to capture
+Keep the **Agent-first** boundary visible: Codex interprets evidence and authors proposals; the runtime only bounds, validates, seals, and applies the exact artifact a human approved.
 
-Prepare a fresh isolated evidence packet:
+## Event density after the hook
+
+After the hook, rhythm comes from **event density**, not equal-length explanation cards. **Narration is the clock:** each shot lasts only for its natural spoken line plus a short transition breath. There are no fixed five-second holds.
+
+| Time | Story beat | Event chain |
+|---|---|---|
+| 0:34.1-0:50.8 | `REAL EVIDENCE` | `14 rollout files -> 6 sessions` -> remove `8 forks / 210 duplicate user turns` -> `PATCH + NO CHANGE / REUSE` |
+| 0:50.8-0:58.8 | `REUSE BEFORE CREATION` | Existing rule resolves the cited evidence -> Codex emits `REUSE EXISTING RULE`, not another instruction |
+| 0:58.8-1:30.6 | `CHAIN OF CUSTODY` | Runtime bounds evidence -> GPT-5.6 authors -> runtime validates -> digest seals -> one byte changes -> deterministic rejection -> reviewed bytes return -> human approval -> receipt |
+| 1:30.6-1:52.3 | `FUTURE EVIDENCE DECIDES` | Later review restores the success contract -> compare expected effect and withdrawal condition -> reinforce / repair / `RETIRE_CANDIDATE` -> human-controlled archive and rollback |
+| 1:52.3-2:02.2 | `WHAT METABOLISM MEANS` | `NOT MODEL TRAINING` appears as an overlay, then the slime-mold motif closes around the final line |
+
+The real numbers come from **one real seven-day review** whose raw logs stayed local. This is **not a benchmark**. The later lifecycle sequence must stay visibly labeled `ISOLATED LIFECYCLE FIXTURE`; it demonstrates implemented mechanics, not measured long-term impact.
+
+## Final line
+
+> **An Agent can add. A healthy collaboration can also let go.**
+
+Keep the responsibility signature on the final frame:
+
+> Agent thinks. Runtime remembers. Human decides.
+
+## Commands represented in the video
+
+Real-session evaluation:
+
+```powershell
+python examples/run_real_session_evaluation.py
+```
+
+Fresh evidence packet for the active Agent:
 
 ```powershell
 python examples/run_agent_first_demo.py --prepare-only --output-root .demo-live
 ```
 
-The command prints a ready-to-paste prompt for the active Codex session. After the live segment, reproduce the complete safety path separately:
+Reproducible safety path:
 
 ```powershell
 python examples/run_agent_first_demo.py --output-root .demo-recorded
 ```
 
-Label the second run **recorded Codex-authored fixture**. It exists so judges can reproduce the lifecycle without authentication; it must not be presented as a live model call.
+The last command uses a **recorded Codex-authored fixture** so judges can reproduce the lifecycle without authentication. Never present it as a live model call.
 
 ## Visual language
 
-- **Bright green path:** a workflow that earned attention through observed use.
-- **Amber node:** a proposed intervention awaiting human judgment.
+- **Bright green path:** a workflow supported by observed use.
+- **Amber node:** an intervention awaiting human judgment.
 - **Blue boundary:** deterministic evidence, hash, and path gates.
-- **Faded branch:** an archived or unsupported intervention, still recoverable.
+- **Faded branch:** an unsupported intervention that remains recoverable.
 
 The slime mold is procedural, not biological. It does not imply autonomous evolution, weight updates, or causal proof after one successful session.
 
-## Trust and privacy checklist
+## Voice, privacy, and claim rules
 
-- Capture only isolated synthetic sessions and artifacts.
-- Keep the active Codex window inside the isolated demo directory.
-- Do not show account names, real paths, notifications, credentials, or private skills.
-- Show `Runtime interpretation: 0 semantic decisions` long enough to read.
-- Show the exact artifact and generated digest before approval.
-- Say that bounded redaction is not guaranteed anonymization.
-- Say that the current demo proves mechanics and responsibility boundaries, not real-world impact.
+- Reuse the user-approved Kokoro-82M `af_bella` voice.
+- Preserve a natural voice pace. Never time-compress a cue; extend the slide instead.
+- Keep every subtitle cue to at most two lines and 38 characters per line.
+- Narrate `GPT-5.6` as "G P T five point six."
+- Keep the mix near -16 LUFS with peaks below -1 dBFS.
+- Show only isolated synthetic data and the committed, manually paraphrased real-session fixture.
+- Do not expose raw session text, account names, real paths, notifications, credentials, or private Skills.
+- Keep `ONE USER / 7 DAYS / NOT A BENCHMARK` visible with the real numbers.
+- Keep `ISOLATED LIFECYCLE FIXTURE` visible throughout the future-review sequence.
 - Verify public YouTube visibility, duration under three minutes, 1080p H.264, AAC audio, and readable captions.
-
-## Suggested metadata
-
-**Title:** Codex Metabolism — Agent-first improvement for Codex collaboration
-
-**Description:**
-
-> Codex Metabolism lets the active Codex Agent review recent collaboration, capture reusable work, repair recurring friction, and prune stale interventions. Codex interprets and authors; a zero-dependency runtime preserves lifecycle evidence and binds Skill mutation to an exact, human-reviewed digest. Other layers reuse Git and platform mechanisms. MIT licensed: https://github.com/shihchengwei-lab/codex-metabolism
