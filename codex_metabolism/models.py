@@ -53,6 +53,8 @@ class SessionObservation:
     source_file: str
     messages: list[UserMessage] = field(default_factory=list)
     corrections: list[UserMessage] = field(default_factory=list)
+    feedback_candidates: list[UserMessage] = field(default_factory=list)
+    interrupted_turns: int = 0
     tool_executions: list[ToolExecution] = field(default_factory=list)
     skill_signals: set[str] = field(default_factory=set)
     parse_errors: int = 0

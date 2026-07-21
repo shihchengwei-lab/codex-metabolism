@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title description">
   <title id="title">The Codex Metabolism closed loop</title>
-  <desc id="description">Repeated collaboration friction is staged as the smallest intervention, crosses a human approval boundary, is validated by later Codex sessions, and is kept, repaired, rolled back, or archived before the next sessions repeat the loop.</desc>
+  <desc id="description">A human and Codex turn useful work into reusable workflow candidates, review later friction with GPT-5.6, cross a human approval boundary, and use future sessions to keep, repair, roll back, or archive the collaboration layer.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#07111f"/>
@@ -30,8 +30,8 @@
 
   <g font-family="Segoe UI, Arial, sans-serif">
     <text x="72" y="74" fill="#7dd3fc" font-size="19" font-weight="700" letter-spacing="4">THE CODEX METABOLISM LOOP</text>
-    <text x="72" y="145" fill="#f8fafc" font-size="52" font-weight="750">What earns the right to remain?</text>
-    <text x="72" y="192" fill="#b7c5d8" font-size="23">Repeated friction becomes the smallest intervention—then later sessions decide its fate.</text>
+    <text x="72" y="145" fill="#f8fafc" font-size="52" font-weight="750">What should collaboration grow—or let go?</text>
+    <text x="72" y="192" fill="#b7c5d8" font-size="23">Useful work becomes reusable; future sessions reveal what to reinforce, repair, or retire.</text>
 
     <rect x="1250" y="58" width="278" height="46" rx="23" fill="#10233b" stroke="#334155"/>
     <circle cx="1280" cy="81" r="6" fill="#86efac"/>
@@ -42,25 +42,25 @@
       <rect x="72" y="280" width="300" height="278" rx="24" fill="#111d31" stroke="#fb7185" stroke-width="1.5"/>
       <rect x="72" y="280" width="300" height="7" rx="3.5" fill="#fb7185"/>
     </g>
-    <text x="98" y="333" fill="#fb7185" font-size="16" font-weight="750" letter-spacing="1.4">01 · OBSERVE</text>
-    <text x="98" y="384" fill="#f8fafc" font-size="25" font-weight="750">REPEATED FRICTION</text>
+    <text x="98" y="333" fill="#fb7185" font-size="16" font-weight="750" letter-spacing="1.4">01 · COLLABORATE</text>
+    <text x="98" y="384" fill="#f8fafc" font-size="23" font-weight="750">WORK + SIGNALS</text>
     <circle cx="105" cy="434" r="7" fill="#fb7185" opacity="0.95"/>
     <circle cx="132" cy="434" r="7" fill="#fb7185" opacity="0.62"/>
     <circle cx="159" cy="434" r="7" fill="#fb7185" opacity="0.32"/>
-    <text x="98" y="484" fill="#d3deea" font-size="19">failure → correction</text>
-    <text x="98" y="516" fill="#d3deea" font-size="19">→ verified recovery</text>
+    <text x="98" y="484" fill="#d3deea" font-size="19">useful path → workflow</text>
+    <text x="98" y="516" fill="#d3deea" font-size="19">friction → feedback</text>
 
     <!-- 02 Stage -->
     <g filter="url(#shadow)">
       <rect x="440" y="280" width="300" height="278" rx="24" fill="#111d31" stroke="#38bdf8" stroke-width="1.5"/>
       <rect x="440" y="280" width="300" height="7" rx="3.5" fill="#38bdf8"/>
     </g>
-    <text x="466" y="333" fill="#7dd3fc" font-size="16" font-weight="750" letter-spacing="1.4">02 · STAGE</text>
-    <text x="466" y="384" fill="#f8fafc" font-size="20" font-weight="750">STAGE THE SMALLEST FIX</text>
+    <text x="466" y="333" fill="#7dd3fc" font-size="16" font-weight="750" letter-spacing="1.4">02 · REVIEW + STAGE</text>
+    <text x="466" y="384" fill="#f8fafc" font-size="19" font-weight="750">GPT INTERPRETS · HUMAN CHOOSES</text>
     <rect x="466" y="418" width="248" height="42" rx="12" fill="#0b2940"/>
-    <text x="590" y="445" text-anchor="middle" fill="#bae6fd" font-size="17" font-weight="650">existing before new</text>
+    <text x="590" y="445" text-anchor="middle" fill="#bae6fd" font-size="17" font-weight="650">workflow → skill candidate</text>
     <rect x="466" y="470" width="248" height="42" rx="12" fill="#0b2940"/>
-    <text x="590" y="497" text-anchor="middle" fill="#bae6fd" font-size="17" font-weight="650">mechanical before prose</text>
+    <text x="590" y="497" text-anchor="middle" fill="#bae6fd" font-size="17" font-weight="650">friction → smallest fix</text>
 
     <!-- 03 Validate -->
     <g filter="url(#shadow)">
@@ -100,8 +100,8 @@
 
     <!-- Loop back into the next sessions -->
     <path d="M1326 568 L1326 700 Q1326 742 1284 742 L264 742 Q222 742 222 700 L222 570" fill="none" stroke="url(#loopStroke)" stroke-width="5" stroke-linecap="round" marker-end="url(#loopArrow)"/>
-    <rect x="662" y="714" width="276" height="56" rx="28" fill="#10233b" stroke="#5d7190"/>
-    <text x="800" y="748" text-anchor="middle" fill="#dbeafe" font-size="18" font-weight="750" letter-spacing="1.4">NEXT CODEX SESSIONS</text>
+    <rect x="590" y="714" width="420" height="56" rx="28" fill="#10233b" stroke="#5d7190"/>
+    <text x="800" y="748" text-anchor="middle" fill="#dbeafe" font-size="18" font-weight="750" letter-spacing="1.1">FUTURE HUMAN + CODEX SESSIONS</text>
 
     <text x="800" y="830" text-anchor="middle" fill="#94a3b8" font-size="18">Evidence before permanence · subtraction counts as improvement · same Codex, different metabolism</text>
     <text x="72" y="866" fill="#52647c" font-size="13">Codex Metabolism · OpenAI Build Week · Developer Tools · MIT</text>

@@ -21,6 +21,70 @@ def _seconds(timestamp: str) -> float:
 
 
 class SubmissionDocsTests(unittest.TestCase):
+    def test_public_docs_present_gpt_as_interpreter_and_deterministic_code_as_gate(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+
+        for required in (
+            "## Model-assisted review (recommended)",
+            "codex-metabolism review --days 7 --advisor codex",
+            "## Deterministic fallback",
+            "GPT-5.6 interprets collaboration opportunities",
+            "deterministic code constrains the evidence and safety boundary",
+        ):
+            self.assertIn(required, readme)
+        self.assertIn("## 模型協作 review（建議主路徑）", traditional)
+        self.assertIn("## Deterministic fallback（離線備援）", traditional)
+        self.assertIn("GPT-5.6 is the semantic interpreter", devpost)
+        self.assertIn("deterministic code is the evidence and safety envelope", devpost)
+
+    def test_public_story_is_a_human_ai_collaboration_growth_loop(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+        video = (ROOT / "docs" / "demo-voiceover.en.srt").read_text(encoding="utf-8")
+
+        for required in (
+            "Human and AI improve the collaboration layer together",
+            "reusable workflow",
+            "future sessions",
+            "human approval",
+        ):
+            self.assertIn(required, readme)
+        self.assertIn("人與 AI 共同改善協作層", traditional)
+        self.assertIn("reusable workflow", devpost)
+        self.assertIn("human and AI improve the layer between them", video)
+
+    def test_real_session_review_states_the_current_mvp_boundary(self) -> None:
+        review_path = ROOT / "docs" / "REAL_SESSION_REVIEW.md"
+        self.assertTrue(review_path.is_file())
+        review = review_path.read_text(encoding="utf-8")
+        for required in (
+            "213/213",
+            "9",
+            "20",
+            "1,286",
+            "352",
+            "0 proposed changes",
+            "observability evidence",
+            "not causal improvement evidence",
+            "24 pseudonymous candidates",
+            "24 unique pseudonymous candidates with 37 bounded user excerpts",
+            "zero skill captures",
+            "reject duplicates before analysis",
+            "human_review_required=true",
+        ):
+            self.assertIn(required, review)
+
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+        self.assertIn("[Real-session review](docs/REAL_SESSION_REVIEW.md)", readme)
+        self.assertIn("[真實 session review](docs/REAL_SESSION_REVIEW.md)", traditional)
+        self.assertIn("Current MVP boundary", devpost)
+        self.assertIn("long-term goal", devpost)
+
     def test_devpost_loop_visual_is_cover_ready(self) -> None:
         svg_path = ROOT / "docs" / "assets" / "metabolism-loop.svg"
         png_path = ROOT / "docs" / "assets" / "metabolism-loop.png"
@@ -31,13 +95,14 @@ class SubmissionDocsTests(unittest.TestCase):
         svg = svg_path.read_text(encoding="utf-8")
         for required in (
             'width="1600" height="900" viewBox="0 0 1600 900"',
-            "REPEATED FRICTION",
-            "STAGE THE SMALLEST FIX",
+            "WORK + SIGNALS",
+            "workflow → skill candidate",
+            "friction → smallest fix",
             "HUMAN APPROVAL",
             "LATER SESSIONS VALIDATE",
             "KEEP · REPAIR ·",
             "ROLLBACK · ARCHIVE",
-            "NEXT CODEX SESSIONS",
+            "FUTURE HUMAN + CODEX SESSIONS",
         ):
             self.assertIn(required, svg)
         self.assertNotIn("Legacy Cleanup", svg)
@@ -131,8 +196,8 @@ class SubmissionDocsTests(unittest.TestCase):
         for required in (
             "Everyone is building agent memory. We built agent metabolism.",
             "not another memory store, skill generator, or session dashboard",
-            "lifecycle manager for the persistent interventions around Codex",
-            "does not fine-tune or update model weights",
+            "A shared improvement loop for humans and coding agents",
+            "does not fine-tune model weights",
             "Same Codex, different metabolism.",
         ):
             self.assertIn(required, readme)
@@ -157,7 +222,7 @@ class SubmissionDocsTests(unittest.TestCase):
 
         heading = "## Judge quick start — under 60 seconds"
         self.assertIn(heading, readme)
-        self.assertLess(readme.index(heading), readme.index("## The metabolic loop"))
+        self.assertLess(readme.index(heading), readme.index("## The human–AI metabolic loop"))
         for required in (
             "python examples/run_closed_loop_demo.py",
             "No installation, API key, Codex login, or personal session data is required.",
@@ -212,8 +277,9 @@ class SubmissionDocsTests(unittest.TestCase):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
         for required in (
-            "## Optional live GPT-5.6 advisor",
-            "--advisor codex --advisor-model gpt-5.6-sol",
+            "## Model-assisted review (recommended)",
+            "codex-metabolism review --days 7 --advisor codex",
+            "## Model-assisted safety contract",
             "`CREATE HARNESS`",
             "`KEEP RULE`",
             "non-authoritative",
@@ -320,33 +386,32 @@ class SubmissionDocsTests(unittest.TestCase):
         ):
             self.assertIn(required, subtitle_text)
         for required in (
-            "The environment grows. The friction returns.",
-            "Most agent improvement systems are built for addition",
-            "what earns the right to remain",
-            "This is not a self-improving model.",
-            "human-approved lifecycle around Codex",
+            "human and AI improve the layer between them",
+            "reusable path could become a skill",
+            "human-approved collaboration lifecycle",
+            "capture reusable work",
             "twenty-seven synthetic cases",
             "not proof of magical learning or real-world impact",
-            "what deserves to remain",
             "Like slime mold",
-            "brightens the path that works",
+            "brightens what works",
             "unsupported branches fade",
+            "shared collaboration layer grow—and let go",
         ):
             self.assertIn(required, subtitle_text)
         self.assertLess(
-            subtitle_text.index("Most agent improvement systems are built for addition"),
-            subtitle_text.index("We built and tested the system"),
+            subtitle_text.index("reusable path could become a skill"),
+            subtitle_text.index("GPT-5.6 model gpt-5.6-sol"),
         )
         self.assertIn("privacy", guide_text.lower())
         for required in (
             "YouTube",
             "Shot",
             "English voiceover",
-            "live synthetic advisor run",
+            "live advisor command",
             "--advisor codex --advisor-model gpt-5.6-sol",
-            "abstract slime-mold network",
+            "slime-mold network",
             "future-session evidence",
-            "fades unused branches",
+            "unsupported branches fade",
             "2:40",
         ):
             self.assertIn(required, guide_text)

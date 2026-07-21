@@ -10,12 +10,92 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from codex_metabolism.cli import _plugin_catalog, main
+from codex_metabolism.cli import (
+    _advisor_candidates,
+    _collaboration_advisor_candidates,
+    _plugin_catalog,
+    main,
+)
+from codex_metabolism.observe import observe
 
 from tests.helpers import NOW, make_deploy_home, write_skill
 
 
 class CliTests(unittest.TestCase):
+    def test_review_help_presents_model_assistance_as_recommended_and_offline_as_fallback(self) -> None:
+        stdout = io.StringIO()
+        with redirect_stdout(stdout), self.assertRaises(SystemExit) as exit_status:
+            main(["review", "--help"])
+
+        self.assertEqual(exit_status.exception.code, 0)
+        rendered = stdout.getvalue()
+        self.assertIn("recommended model-assisted review", rendered)
+        self.assertIn("deterministic fallback", rendered)
+        self.assertIn("bounded", rendered)
+        self.assertIn("OpenAI", rendered)
+
+    def test_decision_advisor_skips_keep_only_inventory_items(self) -> None:
+        def item(identifier: str, decision: str) -> SimpleNamespace:
+            return SimpleNamespace(
+                id=identifier,
+                decision=decision,
+                target_kind="SKILL",
+                target="demo",
+                mechanism="retain_used_skill",
+                readiness="ready",
+                confidence="medium",
+                proposed_change="Keep it.",
+                evidence=[],
+                adoption_ladder=[],
+            )
+
+        candidates = _advisor_candidates([item("keep", "KEEP"), item("patch", "PATCH")])
+
+        self.assertEqual([candidate["id"] for candidate in candidates], ["patch"])
+
+    def test_collaboration_advisor_candidates_include_reusable_work_without_claiming_completion(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home, skills_root = make_deploy_home(root)
+            snapshot = observe(
+                codex_home, [skills_root], days=7, now=NOW, project_root=root
+            )
+            snapshot.sessions[0].tool_executions.append(
+                snapshot.sessions[0].tool_executions[-1]
+            )
+
+            candidates = _collaboration_advisor_candidates(snapshot, limit=8)
+
+            self.assertLessEqual(len(candidates), 8)
+            rendered = json.dumps(candidates, ensure_ascii=False)
+            self.assertNotIn("session-one", rendered)
+            self.assertNotIn(str(root), rendered)
+            self.assertTrue(all(item["id"].startswith("signal-") for item in candidates))
+            context = next(item for item in candidates if item["kind"] == "workflow_candidate")
+            self.assertLessEqual(len(context["user_inputs_sample"]), 2)
+            self.assertTrue(all(len(text) <= 200 for text in context["user_inputs_sample"]))
+            self.assertRegex(context["project_key"], r"^[0-9a-f]{12}$")
+            self.assertGreaterEqual(context["tool_activity"]["successful"], 2)
+            self.assertTrue(context["tool_trace"])
+            self.assertTrue(
+                all(set(step) == {"tool_name", "status"} for step in context["tool_trace"])
+            )
+            self.assertFalse(context["completion_verified"])
+
+    def test_collaboration_candidate_ids_remain_unique_when_session_ids_repeat(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            codex_home, skills_root = make_deploy_home(root)
+            snapshot = observe(
+                codex_home, [skills_root], days=7, now=NOW, project_root=root
+            )
+            snapshot.sessions[1].session_id = snapshot.sessions[0].session_id
+
+            candidates = _collaboration_advisor_candidates(snapshot, limit=24)
+            ids = [item["id"] for item in candidates]
+
+            self.assertEqual(len(ids), len(set(ids)))
+
     def test_plugin_inventory_uses_shared_launcher_and_skips_not_installed_entries(self) -> None:
         output = """\
 Marketplace `openai-curated`
@@ -47,30 +127,33 @@ slack@openai-curated         not installed
             catalog = root / "catalog.json"
             catalog.write_text(json.dumps([]), encoding="utf-8")
 
-            code = main(
-                [
-                    "review",
-                    "--days",
-                    "7",
-                    "--codex-home",
-                    str(codex_home),
-                    "--skill-root",
-                    str(skills_root),
-                    "--project-root",
-                    str(root),
-                    "--output-dir",
-                    str(output),
-                    "--catalog-file",
-                    str(catalog),
-                    "--no-skillreaper",
-                    "--now",
-                    NOW.isoformat(),
-                ]
-            )
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                code = main(
+                    [
+                        "review",
+                        "--days",
+                        "7",
+                        "--codex-home",
+                        str(codex_home),
+                        "--skill-root",
+                        str(skills_root),
+                        "--project-root",
+                        str(root),
+                        "--output-dir",
+                        str(output),
+                        "--catalog-file",
+                        str(catalog),
+                        "--no-skillreaper",
+                        "--now",
+                        NOW.isoformat(),
+                    ]
+                )
 
             self.assertEqual(code, 0)
             self.assertTrue((output / "report.md").is_file())
             self.assertTrue((output / "decisions.json").is_file())
+            self.assertIn("1 proposed change, 0 KEEP", stdout.getvalue())
 
     def test_review_can_export_privacy_safe_evidence_csv(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -192,6 +275,9 @@ slack@openai-curated         not installed
                 advisor_models.append(model)
 
             def advise(self, candidates: list[dict], *, cwd: Path) -> list[dict]:
+                self_test = unittest.TestCase()
+                self_test.assertTrue(candidates)
+                self_test.assertTrue(all(item["decision"] != "KEEP" for item in candidates))
                 candidate = candidates[0]
                 return [
                     {
@@ -203,6 +289,20 @@ slack@openai-curated         not installed
                         "evidence_ids": candidate["evidence_ids"],
                         "proposed_change": candidate["proposed_change"],
                         "reasoning": "Mechanical enforcement matches the evidence.",
+                    }
+                ]
+
+            def advise_collaboration(self, candidates: list[dict], *, cwd: Path) -> list[dict]:
+                return [
+                    {
+                        "suggestion_id": "semantic-1",
+                        "opportunity_type": "workflow_friction",
+                        "confidence": "medium",
+                        "evidence_ids": [candidates[0]["id"]],
+                        "suggested_layer": "HARNESS",
+                        "recommendation": "Inspect the repeated preflight friction.",
+                        "reasoning": "The feedback candidate identifies repeated workflow friction.",
+                        "human_review_required": True,
                     }
                 ]
 
@@ -242,6 +342,15 @@ slack@openai-curated         not installed
             )
             self.assertEqual(advised["metadata"]["codex_advisor"]["confidence"], "high")
             self.assertEqual(advised["metadata"]["advisor_role"], "non_authoritative")
+            self.assertEqual(staged["semantic_advisor"][0]["suggestion_id"], "semantic-1")
+            self.assertTrue(staged["semantic_advisor_meta"]["human_review_required"])
+            self.assertGreater(staged["semantic_advisor_meta"]["candidate_count"], 0)
+            report = (output / "report.md").read_text(encoding="utf-8")
+            self.assertIn("Review mode: **model-assisted**", report)
+            self.assertIn("GPT-5.6 interprets bounded collaboration evidence", report)
+            self.assertIn("GPT-5.6 collaboration-layer review (non-authoritative)", report)
+            self.assertIn("cannot mutate live state", report)
+            self.assertEqual(staged["review_mode"], "model_assisted")
             self.assertEqual(advisor_models, ["gpt-5.6-sol"])
 
     def test_activate_tool_command_records_existing_artifact_without_installing_it(self) -> None:

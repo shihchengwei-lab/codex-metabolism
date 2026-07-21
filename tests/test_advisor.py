@@ -6,10 +6,131 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from codex_metabolism.advisor import ADVISOR_SCHEMA, AdvisorError, CodexAdvisor
+from codex_metabolism.advisor import (
+    ADVISOR_SCHEMA,
+    COLLABORATION_ADVISOR_SCHEMA,
+    AdvisorError,
+    CodexAdvisor,
+)
 
 
 class AdvisorTests(unittest.TestCase):
+    def test_collaboration_advisor_accepts_reusable_workflow_skill_candidate(self) -> None:
+        advisor = CodexAdvisor(model="gpt-5.6")
+        candidates = [{"id": "workflow-1", "kind": "workflow_candidate"}]
+
+        suggestions = advisor.validate_collaboration_suggestions(
+            candidates,
+            [
+                {
+                    "suggestion_id": "capture-1",
+                    "opportunity_type": "reusable_workflow",
+                    "confidence": "medium",
+                    "evidence_ids": ["workflow-1"],
+                    "suggested_layer": "SKILL",
+                    "recommendation": "Draft a reusable release-validation workflow.",
+                    "reasoning": "The bounded task and tool pattern appears reusable.",
+                    "human_review_required": True,
+                }
+            ],
+        )
+
+        self.assertEqual(suggestions[0]["opportunity_type"], "reusable_workflow")
+        self.assertEqual(suggestions[0]["suggested_layer"], "SKILL")
+
+    def test_collaboration_advisor_is_structured_non_authoritative_and_evidence_bounded(self) -> None:
+        captured: dict[str, object] = {}
+
+        def fake_runner(command: list[str], **kwargs: object) -> SimpleNamespace:
+            captured["input"] = kwargs["input"]
+            output = Path(command[command.index("-o") + 1])
+            output.write_text(
+                json.dumps(
+                    {
+                        "suggestions": [
+                            {
+                                "suggestion_id": "semantic-1",
+                                "opportunity_type": "direction_mismatch",
+                                "confidence": "medium",
+                                "evidence_ids": ["signal-1"],
+                                "suggested_layer": "SKILL",
+                                "recommendation": "Add a bounded clarification step.",
+                                "reasoning": "The user explicitly redirected the task.",
+                                "human_review_required": True,
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+        advisor = CodexAdvisor(runner=fake_runner)
+        candidates = [
+            {
+                "id": "signal-1",
+                "session_key": "session-hash",
+                "kind": "user_feedback",
+                "excerpt": "不是這個工具。",
+            }
+        ]
+
+        with tempfile.TemporaryDirectory() as temp:
+            suggestions = advisor.advise_collaboration(candidates, cwd=Path(temp))
+
+        packet = json.loads(str(captured["input"]))
+        self.assertEqual(packet["candidates"], candidates)
+        self.assertEqual(suggestions[0]["suggested_layer"], "SKILL")
+        self.assertTrue(suggestions[0]["human_review_required"])
+        self.assertNotIn(
+            "uniqueItems",
+            COLLABORATION_ADVISOR_SCHEMA["properties"]["suggestions"]["items"]["properties"][
+                "evidence_ids"
+            ],
+        )
+
+    def test_collaboration_advisor_rejects_invented_evidence_or_missing_human_gate(self) -> None:
+        advisor = CodexAdvisor()
+        candidates = [{"id": "signal-1"}]
+        base = {
+            "suggestion_id": "semantic-1",
+            "opportunity_type": "scope_mismatch",
+            "confidence": "medium",
+            "suggested_layer": "RULE",
+            "recommendation": "Clarify scope.",
+            "reasoning": "Repeated redirection.",
+            "human_review_required": True,
+        }
+        with self.assertRaisesRegex(AdvisorError, "invented or omitted evidence IDs"):
+            advisor.validate_collaboration_suggestions(
+                candidates, [{**base, "evidence_ids": ["invented"]}]
+            )
+        with self.assertRaisesRegex(AdvisorError, "human review"):
+            advisor.validate_collaboration_suggestions(
+                candidates,
+                [{**base, "evidence_ids": ["signal-1"], "human_review_required": False}],
+            )
+
+    def test_collaboration_advisor_rejects_duplicate_candidate_ids(self) -> None:
+        calls = 0
+
+        def runner(*args: object, **kwargs: object) -> SimpleNamespace:
+            nonlocal calls
+            calls += 1
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+        advisor = CodexAdvisor(runner=runner)
+        candidates = [{"id": "signal-1"}, {"id": "signal-1"}]
+
+        with self.assertRaisesRegex(AdvisorError, "duplicate candidate IDs"):
+            advisor.validate_collaboration_suggestions(
+                candidates,
+                [],
+            )
+        with self.assertRaisesRegex(AdvisorError, "duplicate candidate IDs"):
+            advisor.advise_collaboration(candidates)
+        self.assertEqual(calls, 0)
+
     def test_codex_advisor_is_ephemeral_read_only_and_defaults_to_verified_gpt_5_6(self) -> None:
         advisor = CodexAdvisor()
         command = advisor.build_command(schema_path="schema.json", output_path="result.json")

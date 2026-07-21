@@ -73,6 +73,42 @@ def _correction_between(
     return None
 
 
+def friction_funnel(observation: Observation) -> dict[str, int]:
+    """Summarize conservative detector gates without exposing session content."""
+    failures = 0
+    recoveries = 0
+    corrected_recoveries = 0
+    corrected_signatures: dict[str, set[str]] = defaultdict(set)
+    for session in observation.sessions:
+        for tool in session.tool_executions:
+            if tool.status != "failure" or not tool.command:
+                continue
+            failures += 1
+            signature = _signature(tool.command)
+            success = _first_later_success(tool, session, signature)
+            if success is None:
+                continue
+            recoveries += 1
+            if _correction_between(tool, success, session) is None:
+                continue
+            corrected_recoveries += 1
+            corrected_signatures[signature].add(session.session_id)
+    return {
+        "observed_user_feedback_candidates": sum(
+            len(session.feedback_candidates) for session in observation.sessions
+        ),
+        "interrupted_turns": sum(
+            session.interrupted_turns for session in observation.sessions
+        ),
+        "tool_failures_with_command": failures,
+        "same_command_recoveries": recoveries,
+        "recoveries_with_recognized_correction": corrected_recoveries,
+        "recurring_patterns_meeting_threshold": sum(
+            len(session_ids) >= 2 for session_ids in corrected_signatures.values()
+        ),
+    }
+
+
 def _preflight_pair(correction: str, signature: str) -> tuple[str, str] | None:
     spans = [span.strip() for span in re.findall(r"`([^`]{1,160})`", correction)]
     lowered = correction.lower()

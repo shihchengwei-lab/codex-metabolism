@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -122,7 +124,116 @@ def _advisor_candidates(decisions: list[Any]) -> list[dict[str, Any]]:
             ],
         }
         for decision in decisions
+        if decision.decision != "KEEP"
     ]
+
+
+def _collaboration_advisor_candidates(
+    observation: Any, *, limit: int = 24
+) -> list[dict[str, Any]]:
+    friction: list[dict[str, Any]] = []
+    workflows: list[dict[str, Any]] = []
+    for session in reversed(observation.sessions):
+        session_identity = f"{session.session_id}|{session.source_file}"
+        session_key = hashlib.sha256(session_identity.encode("utf-8")).hexdigest()[:12]
+        project_key = hashlib.sha256(
+            str(session.cwd or "unknown").casefold().encode("utf-8")
+        ).hexdigest()[:12]
+        if session.feedback_candidates or session.interrupted_turns:
+            context_id = hashlib.sha256(
+                f"{session_identity}|context".encode("utf-8")
+            ).hexdigest()[:12]
+            friction.append(
+                {
+                    "id": f"signal-{context_id}",
+                    "session_key": session_key,
+                    "project_key": project_key,
+                    "kind": "collaboration_context",
+                    "user_inputs_sample": [
+                        message.text[:200] for message in session.messages[:2]
+                    ],
+                }
+            )
+            for message in reversed(session.feedback_candidates[-2:]):
+                signal_id = hashlib.sha256(
+                    f"{session_identity}|feedback|{message.sequence}".encode("utf-8")
+                ).hexdigest()[:12]
+                friction.append(
+                    {
+                        "id": f"signal-{signal_id}",
+                        "session_key": session_key,
+                        "project_key": project_key,
+                        "kind": "user_feedback",
+                        "excerpt": message.text[:200],
+                    }
+                )
+            if session.interrupted_turns:
+                signal_id = hashlib.sha256(
+                    f"{session_identity}|interruptions".encode("utf-8")
+                ).hexdigest()[:12]
+                friction.append(
+                    {
+                        "id": f"signal-{signal_id}",
+                        "session_key": session_key,
+                        "project_key": project_key,
+                        "kind": "interrupted_turns",
+                        "occurrence_count": session.interrupted_turns,
+                    }
+                )
+
+        successful = sum(tool.status == "success" for tool in session.tool_executions)
+        failed = sum(tool.status == "failure" for tool in session.tool_executions)
+        if len(session.tool_executions) >= 4 and successful >= 2 and session.messages:
+            signal_id = hashlib.sha256(
+                f"{session_identity}|workflow".encode("utf-8")
+            ).hexdigest()[:12]
+            verification_like_successes = sum(
+                tool.status == "success"
+                and bool(
+                    re.search(
+                        r"(?i)(?:^|\s)(?:test|tests|pytest|unittest|build|lint|check)(?:\s|$)",
+                        tool.command,
+                    )
+                )
+                for tool in session.tool_executions
+            )
+            workflows.append(
+                {
+                    "id": f"signal-{signal_id}",
+                    "session_key": session_key,
+                    "project_key": project_key,
+                    "kind": "workflow_candidate",
+                    "user_inputs_sample": [
+                        message.text[:200] for message in session.messages[:2]
+                    ],
+                    "tool_activity": {
+                        "total": len(session.tool_executions),
+                        "successful": successful,
+                        "failed": failed,
+                        "verification_like_successes": verification_like_successes,
+                    },
+                    "tool_trace": [
+                        {"tool_name": tool.tool_name, "status": tool.status}
+                        for tool in session.tool_executions[:8]
+                    ],
+                    "completion_verified": False,
+                    "candidate_reason": (
+                        "Substantial tool activity may contain a reusable workflow; "
+                        "absence of later correction is not proof of task success."
+                    ),
+                }
+            )
+
+    friction_budget = min(len(friction), (limit + 1) // 2)
+    selected = friction[:friction_budget]
+    selected.extend(workflows[: limit - len(selected)])
+    if len(selected) < limit:
+        selected.extend(friction[friction_budget : friction_budget + limit - len(selected)])
+    return selected[:limit]
+
+
+# Kept for API compatibility with the first MVP.
+_semantic_advisor_candidates = _collaboration_advisor_candidates
 
 
 def _review(args: argparse.Namespace) -> int:
@@ -182,26 +293,57 @@ def _review(args: argparse.Namespace) -> int:
         snapshot.coverage.catalog_checked = checked
 
     decisions = decide(snapshot, now=now)
-    if args.advisor == "codex" and decisions:
-        candidates = _advisor_candidates(decisions)
-        suggestions = CodexAdvisor(model=args.advisor_model).advise(
-            candidates,
-            cwd=args.project_root,
-        )
-        by_id = {item["candidate_id"]: item for item in suggestions}
-        for decision in decisions:
-            suggestion = by_id.get(decision.id)
-            if suggestion is not None:
-                decision.metadata["codex_advisor"] = suggestion
-                decision.metadata["advisor_role"] = "non_authoritative"
-    output = stage_review(snapshot, decisions, args.output_dir, generated_at=now)
+    semantic_suggestions: list[dict[str, Any]] = []
+    semantic_candidates: list[dict[str, Any]] = []
+    if args.advisor == "codex":
+        advisor = CodexAdvisor(model=args.advisor_model)
+        if decisions:
+            candidates = _advisor_candidates(decisions)
+            suggestions = (
+                advisor.advise(candidates, cwd=args.project_root) if candidates else []
+            )
+            by_id = {item["candidate_id"]: item for item in suggestions}
+            for decision in decisions:
+                suggestion = by_id.get(decision.id)
+                if suggestion is not None:
+                    decision.metadata["codex_advisor"] = suggestion
+                    decision.metadata["advisor_role"] = "non_authoritative"
+        semantic_candidates = _collaboration_advisor_candidates(snapshot)
+        if semantic_candidates:
+            excerpt_count = sum(
+                int("excerpt" in item) + len(item.get("user_inputs_sample", []))
+                for item in semantic_candidates
+            )
+            print(
+                "GPT-5.6 collaboration-layer review sends "
+                f"{len(semantic_candidates)} pseudonymous candidates "
+                f"({excerpt_count} bounded user excerpts) to OpenAI; "
+                "results remain non-authoritative and human-reviewed.",
+                file=sys.stderr,
+            )
+            semantic_suggestions = advisor.advise_collaboration(
+                semantic_candidates, cwd=args.project_root
+            )
+    output = stage_review(
+        snapshot,
+        decisions,
+        args.output_dir,
+        generated_at=now,
+        semantic_suggestions=semantic_suggestions,
+        semantic_candidate_count=len(semantic_candidates),
+        advisor_model=args.advisor_model if args.advisor == "codex" else None,
+    )
     if args.export_evidence:
         exported = export_evidence_csv(snapshot, decisions, args.export_evidence)
         print(f"Exported structured evidence CSV to {exported}")
     ready = sum(1 for item in decisions if item.readiness == "ready")
     blocked = len(decisions) - ready
+    proposed_changes = sum(1 for item in decisions if item.decision != "KEEP")
+    kept = len(decisions) - proposed_changes
     print(
-        f"Staged {len(decisions)} decisions ({ready} ready, {blocked} needs research) at {output}"
+        f"Staged {len(decisions)} review items "
+        f"({proposed_changes} proposed change{'s' if proposed_changes != 1 else ''}, "
+        f"{kept} KEEP; {ready} ready, {blocked} needs research) at {output}"
     )
     record_review_success(args.output_dir, reviewed_at=now, source="manual")
     return 0
@@ -330,8 +472,9 @@ def _parser() -> argparse.ArgumentParser:
         choices=("none", "codex"),
         default="none",
         help=(
-            "Optional second opinion. `codex` sends bounded decision and evidence summaries "
-            "to an ephemeral, read-only Codex run; it never changes authoritative decisions"
+            "Use `codex` for the recommended model-assisted review: bounded, pseudonymous "
+            "evidence is sent to OpenAI for GPT-5.6 semantic interpretation. `none` is the "
+            "local deterministic fallback. Neither mode applies changes automatically"
         ),
     )
     review.add_argument("--advisor-model", default="gpt-5.6-sol", help=argparse.SUPPRESS)

@@ -1,22 +1,22 @@
 1
 00:00:00,000 --> 00:00:14,000
-Codex hits the same deployment mistake in two different sessions. Each time, we add another rule, skill, or tool.
-The environment grows. The friction returns.
+A human and Codex finally complete a difficult task. Its reusable path could become a skill.
+But future sessions still hit friction, while old rules and tools keep accumulating.
 
 2
 00:00:14,000 --> 00:00:32,000
-Most agent improvement systems are built for addition. Codex Metabolism asks what earns the right to remain.
-Like slime mold, it explores candidate paths; later use brightens the path that works, while unsupported branches fade.
+Codex Metabolism lets human and AI improve the layer between them. Like slime mold, it grows candidate paths from useful work;
+later use brightens what works, while unsupported branches fade.
 
 3
 00:00:32,000 --> 00:00:45,000
-This is not a self-improving model. It is a human-approved lifecycle around Codex: synthetic sessions expose friction,
-and later sessions decide whether the fix is kept, repaired, or archived.
+This is not model training. It is a human-approved collaboration lifecycle: capture reusable work, observe future sessions,
+then decide whether a skill, safeguard, or rule should be created, repaired, kept, or archived.
 
 4
 00:00:45,000 --> 00:00:59,000
 Failure, explicit correction, and same-command recovery repeat across two sessions.
-One zero-install review stages four decisions and changes nothing live.
+One zero-install review stages CREATE HARNESS plus three lifecycle decisions, and changes nothing live.
 
 5
 00:00:59,000 --> 00:01:14,000
@@ -45,10 +45,10 @@ This is a boundary test—not proof of magical learning or real-world impact.
 
 10
 00:02:11,000 --> 00:02:32,000
-We built and tested the system with Codex and GPT-5.6. In an optional synthetic run, model gpt-5.6-sol agreed on CREATE HARNESS,
-challenged PATCH RULE with KEEP RULE, but deterministic gates and human approval remain authoritative.
+GPT-5.6 model gpt-5.6-sol interprets bounded workflow and friction candidates; in the live replay it challenges PATCH RULE with KEEP RULE.
+Deterministic gates and human approval remain authoritative. The synthetic replay demonstrates the loop—not magical improvement.
 
 11
 00:02:32,000 --> 00:02:40,000
-Most tools help agents remember more.
-Codex Metabolism helps decide what deserves to remain.
+Human and Agent can learn from every session together.
+Codex Metabolism helps their shared collaboration layer grow—and let go.
