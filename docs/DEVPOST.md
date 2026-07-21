@@ -1,109 +1,68 @@
 # Codex Metabolism — project story
 
-> **Agent-first architecture:** Codex interprets and authors. A small runtime preserves evidence, binds approval to exact proposal bytes, and safely manages the mutations it owns.
+> **Codex can create. Codex Metabolism closes the lifecycle: reuse what exists, create or patch when justified, revisit later evidence, and propose retirement—with human approval for every live change.**
 
 ## Project details
 
 - **Track:** Developer Tools
 - **Tagline:** Let human–AI collaboration grow what helps—and retire what does not.
 - **Repository:** https://github.com/shihchengwei-lab/codex-metabolism
-- **Original Build Week video (v0.1):** https://youtu.be/egZhaFeDkRE
-- **Current reproducible demo:** `python examples/run_agent_first_demo.py`
+- **Current Build Week video:** https://youtu.be/7aYSEC4RQ8A
+- **60-second test path:** `python examples/run_agent_first_demo.py`
 
 ## Inspiration
 
-OpenAI once documented a [literal goblin problem](https://openai.com/index/where-the-goblins-came-from/): Codex needed a prompt patch saying, “Never talk about goblins.” The patch made sense—but how many rules in your `AGENTS.md` still solve a problem your recent sessions actually have?
+[OpenAI once patched Codex](https://openai.com/index/where-the-goblins-came-from/) with **“Never talk about goblins.”** Funny—but it exposes a real problem: Agent environments keep emergency rules, Skills, and tools after their reason disappears.
 
-Coding agents are good at adding memory, rules, skills, and tools. They are worse at proving that an intervention still helps—or removing it when it does not. **Accumulation is not improvement.**
+**Codex Metabolism gives those interventions a lifecycle:** reuse, create or patch, revisit with session evidence, and propose retirement—with human approval.
 
-Codex Metabolism borrows its mental model from slime mold: useful work opens a path, later traffic reveals whether to reinforce or repair it, and unsupported branches fade.
-
-The original inspirations were Hermes Agent's agent-managed skill creation, Claude Code Insights' session retrospectives, and my MIT-licensed [`session-analytics`](https://github.com/shihchengwei-lab/session-analytics) project.
+Inspired by Hermes Agent, Claude Code Insights, and my [`session-analytics`](https://github.com/shihchengwei-lab/session-analytics).
 
 ## What it does
 
-Codex Metabolism is a skill the active Codex Agent uses to review its recent collaboration with one person.
+Codex Metabolism is a GPT-5.6 Agent Skill that reviews recent Codex sessions, finds reusable work or recurring friction, and proposes the smallest useful intervention.
 
-```text
-Use $codex-metabolism to review my last 7 days.
-Find reusable work and recurring friction, check existing capabilities first,
-and show every proposed diff. Do not apply anything until I approve it.
-```
+**Observe → interpret → search existing capabilities → reuse or propose `CREATE`, `PATCH`, or `RETIRE_CANDIDATE` → human approval → revisit.**
 
-The runtime turns changing local JSONL into bounded, ordered evidence. **It makes zero semantic decisions.** Codex groups evidence by user intent, distinguishes a reusable trajectory from a retry, searches existing capabilities, and authors zero to three complete improvements. The runtime checks every evidence reference, seals exact artifact bytes, and generates an approval digest. Changing either proposal or artifact invalidates that reviewed digest.
-
-After the first manual review, it offers an opt-in native Codex Scheduled task shortly before the user's weekly usage reset. Scheduled runs are stage-only and return findings to the Scheduled inbox; they can never apply a change.
-
-Approved skills are hash-gated and reversible. Repository harnesses, tools, and bounded rules use existing Git or platform mechanisms; Metabolism preserves the approved proposal hash, the actual implementation-evidence hash, and the correct ACTIVE or RETIRED state so a future review can reason about what changed.
-
-**The model does not retrain. The collaboration layer becomes more inspectable and personal.**
+GPT-5.6 authors up to three evidence-linked proposals—or recommends no change. A small Python runtime bounds and validates the evidence, seals the exact reviewed bytes, and records reversible changes. It makes **zero semantic decisions**, and nothing goes live without human approval.
 
 ## How we built it
 
-### Only the standard library
+We split the Agent-first system by responsibility:
 
-The Python 3.11+ substrate streams JSONL, bounds excerpts, reports coverage, inventories installed skills and `AGENTS.md` metadata, writes atomically, and preserves receipts without adding a dependency stack to a cleanup tool.
+- **GPT-5.6 interprets.** Codex groups sessions by intent, identifies reusable work and friction, searches existing capabilities, and authors complete proposals—or abstains.
+- **Python enforces invariants—with only the standard library.** It streams JSONL, reports parse coverage, removes duplicate forks and events, bounds evidence, and writes atomically.
+- **Humans authorize.** Reviewed artifacts are sealed into an approval digest. Change one byte and approval becomes invalid; applied changes leave receipts and rollback paths.
 
-### Mixed ownership + hash-gated apply
+This mixed-ownership design preserves native mechanisms: Skills use hash-gated apply, while rules, hooks, and schedulers retain their own ownership and safety controls.
 
-Human files and Agent-managed artifacts do not share the same authority. Skill changes cite an observed target, seal a base hash, and fail if either the live file or reviewed artifact changes. Non-skill changes are never secretly implemented by the runtime.
-
-### Agent-first, not an advisor wrapper
-
-GPT-5.6 is the active Codex Agent, not a nested model call hidden behind Python. It performs the hard semantic work and writes the real artifact. Deterministic code can reject unsafe structure, but it cannot choose what a user's interruption means or which intervention layer is best. The human still decides whether anything becomes live.
-
-### Real logs changed the implementation
-
-A seven-day real-session run parsed 14/14 rollout files but found only six independent sessions. Eight child-Agent snapshots, 210 dual-serialized user events, compaction history, and more than two thousand events from one long session exposed evidence inflation that the synthetic fixtures missed. We fixed the parser, capped and disclosed sampling, and committed only paraphrased evidence—not raw private JSONL.
+Codex also helped build the architecture. It replaced our first deterministic semantic detector, analyzed real Codex logs, and turned duplicate-evidence failures into regression tests.
 
 ## Challenges
 
-> **Parse gaps must remain unknown.**
+> **Parse gaps must remain unknown.** Codex JSONL is evidence, not a stable public analytics schema; missing coverage cannot become non-use.
 
-Codex JSONL is useful but not a stable public analytics schema. Coverage failures can never be relabeled as non-use.
+> **Silence is not success.** Tests and exit codes are stronger than “the user did not complain”; the current release does not manufacture causal verdicts.
 
----
-
-> **Silence is not success.**
-
-Exit codes and tests are stronger signals than “the user did not complain.” Even a successful tool call cannot prove that a task deserves a skill—or that an intervention helped later.
-
----
-
-> **Trust was the product boundary.**
-
-A self-editing demo is easy to make and hard to trust. Proposal is not permission: Skill apply is bound to the exact digest the user reviewed, and retirement means archive, not silent deletion. A CLI cannot authenticate human identity, so Codex must still wait for explicit approval in the conversation. Non-skill changes retain the native Git or platform rollback path instead of pretending the runtime owns them.
+> **Trust was the product boundary.** Proposal is not permission. Changed bytes void approval, retirement archives instead of deleting, and scheduled runs remain stage-only.
 
 ## Accomplishments
 
-- Replaced a large deterministic decision engine with a small Agent-first contract.
-- Reduced the runtime to neutral observation, proposal validation, receipts, safe mutation, and rollback.
-- Added an isolated demo whose first line is `Runtime interpretation: 0 semantic decisions`.
-- A fresh Codex Agent ignored the recorded skill-shaped fixture, reused the repository preflight, and authored a smaller `PATCH / HARNESS`; its patch passed `git apply --check` and remained stage-only.
-- Reject invented evidence IDs, path escapes, stale targets, duplicate IDs, unknown schema fields, and proposal or artifact changes after approval.
-- Keep the project zero-dependency and test it on Python 3.11/3.12 for Ubuntu and Windows.
-- Publish a de-identified real-session case study containing both a `PATCH` and a `NO CHANGE / REUSE` judgment.
+- Built a zero-dependency Agent Skill with human-gated `CREATE`, `PATCH`, `RETIRE_CANDIDATE`, restore, and rollback.
+- In a **one-user, seven-day case study—not a benchmark**—the runtime reduced 14 rollout files to six independent sessions after identifying eight fork snapshots and 210 duplicate user events. GPT-5.6 then proposed one `PATCH` and one `NO CHANGE / REUSE`.
+- Preserved mixed ownership: sealed Skills use hash-gated apply, while rules, hooks, tools, and schedulers remain under their native controls.
+- Shipped a reproducible synthetic lifecycle demo and CI across Python 3.11/3.12 on Ubuntu and Windows, including package builds.
 
 ## What we learned
 
-The first version extracted ideas from Agent products but accidentally removed the Agent from the center. Python tried to infer friction with exact patterns while GPT-5.6 sat outside as an optional advisor. The result was safe, but conceptually backward.
-
-The better division is simple:
-
-- **Codex understands and creates.**
-- **The runtime remembers and constrains.**
-- **The human approves an exact digest; Skill mutations are reversible, while other layers retain their native rollback path.**
-
-That makes the program necessary without pretending it is intelligent.
+Our first version extracted ideas from Agent products and accidentally removed the Agent from the center. Python inferred meaning from exact patterns while GPT-5.6 sat outside as an optional advisor. The simpler architecture is stronger: **model for meaning, code for invariants, human for judgment.**
 
 ## What's next
 
-Models improve, and users learn how to work with them. The collaboration layer between them should improve too.
-
-The long-term loop is: an Agent completes difficult or repeated work, captures a reusable path, encounters new friction in later sessions, and reviews with the human what deserves reinforcement, repair, or withdrawal. With stronger longitudinal outcome evidence, this could become a native Codex capability: personal without becoming opaque, adaptive without surrendering control.
+Models improve, and users learn. **The collaboration layer between them should improve too.** With opt-in longitudinal evidence and more users, this could become native to Codex: capture difficult work, notice later friction, then jointly reinforce, repair, or withdraw interventions—personal without becoming opaque.
 
 ## Honest boundary
 
-The current release implements observation → zero-to-three Agent proposals → validation and approval digest → human decision → action-accurate receipt → Skill rollback or native external rollback. Each target's next review receives its prior reasoning, evidence, expected effect, withdrawal condition, and bounded status history. The isolated replay is synthetic; a separate one-user case study uses de-identified real-session evidence. It does **not** claim real-world precision/recall, causal improvement, automatic intervention evaluation, or long-term impact.
+The release implements observation → Agent proposal or abstention → sealed digest → human decision → receipt → reversible Skill or native rollback. The real evaluation is one user's seven-day case, **not a benchmark**. It claims neither causal gains nor long-term impact. Model weights do not change; the human and Agent curate an inspectable collaboration layer.
 
-The [README](../README.md) contains installation, safety details, and the current command surface. The [video production pack](DEMO_VIDEO.md) describes an Agent-first replacement demo.
+See the [README](../README.md) for setup and the [video pack](DEMO_VIDEO.md) for storyboard and captions.

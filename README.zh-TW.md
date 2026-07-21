@@ -1,16 +1,27 @@
 # Codex Metabolism
 
-> **Agent 負責思考；runtime 負責記住與約束。**
+> **Codex 會建立新能力。Codex Metabolism 補上完整生命週期：先重用既有能力；有證據時建立或修補；之後回看新證據並提出退休；每次改動 live state 都要人類批准。**
 
 [English](README.md) · OpenAI Build Week：**Developer Tools** · [MIT](LICENSE)
 
 [![CI](https://github.com/shihchengwei-lab/codex-metabolism/actions/workflows/ci.yml/badge.svg)](https://github.com/shihchengwei-lab/codex-metabolism/actions/workflows/ci.yml)
 
-Codex 很會解決眼前的任務，但協作久了，環境會堆滿 skills、規則、scripts、hooks 與一次性補丁。有用的路徑愈來愈難找，過時的路徑一直留下，同一個人類修正也可能在另一個 session 再次出現。
+Codex 很會解決眼前的任務。但協作久了，同一個人類修正可能再次出現，skills、規則、scripts、hooks 與一次性補丁卻持續堆高。**累積不等於改善。**
 
-**Codex Metabolism 是改善這個協作層的 Agent Skill。**目前正在工作的 Codex 讀取近期 session 的有限證據，辨認可重用工作與反覆摩擦，先找既有能力，再寫出最小的改善方案。零第三方相依的 Python runtime 保存證據與可收斂的 target 歷史、把批准綁定到確切版本，並只直接管理它能安全回復的 Skill 變更。
+**Codex Metabolism 是改善這個協作層的 Agent Skill。**目前正在工作的 GPT-5.6 Codex Agent 檢視近期 session 的有限證據，先找既有能力，再選擇重用或不變、寫出完整的 `CREATE`／`PATCH` artifact，或提出 `RETIRE_CANDIDATE`。它像黏菌一樣，讓後續證據決定強化、修補或撤回同一條路徑。
 
-**Codex 負責語義理解與產物設計；runtime 負責證據邊界、持久化與安全變更；人類負責最後的 gate。**
+> **真實 session 證據：**一次七天 review 把 **14 份 rollout files** 還原為 **6 個獨立 sessions**；其中 8 份是 fork／snapshot，另折疊了 **210 個重複 user events**。這批證據直接促成 parser 修正、找出排程摩擦，也在既有規則已涵蓋問題時誠實回傳 `NO CHANGE / REUSE`。[閱讀案例](docs/REAL_SESSION_EVALUATION.md)。
+
+### 60 秒評審入口
+
+Clone 後即可執行，不需要 API key、登入、安裝或私人資料：
+
+```bash
+python examples/run_agent_first_demo.py
+python examples/run_real_session_evaluation.py
+```
+
+**Codex 負責語義理解與產物設計；runtime 負責證據邊界、持久化與安全變更；人類負責最後的 gate。簡單說：Agent 負責思考；runtime 負責記住與約束。這裡的 Agent 就是 Codex 裡的 GPT-5.6。**
 
 ## 為什麼還需要一個程式？
 
@@ -79,7 +90,7 @@ Codex 會：
               +--- 保留 / 修補 / 回滾
 ```
 
-這就是黏菌比喻的用途：下一輪會同時看見新證據與原本的成功／撤回條件，讓 Codex 與人類決定強化、修補或退休同一條路，而不是再疊一條。**別人持續做加法；Metabolism 加入選擇、驗證與減法。**
+這就是黏菌比喻的用途：Codex 仍可以長出新路徑；Metabolism 補上它前後的生命週期——新建前先搜尋、把證據與 exact bytes 交給人類批准，再依後續證據決定強化、修補或提出退休。
 
 ![Agent-first Codex Metabolism 迴圈：Codex 理解並設計、runtime 驗證、人類批准](docs/assets/agent-first-loop.svg)
 

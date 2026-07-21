@@ -1,16 +1,27 @@
 # Codex Metabolism
 
-> **Agent thinks; the runtime remembers and constrains.**
+> **Codex can create. Codex Metabolism closes the lifecycle: reuse what exists, create or patch when justified, revisit later evidence, and propose retirement—with human approval for every live change.**
 
 [繁體中文](README.zh-TW.md) · OpenAI Build Week: **Developer Tools** · [MIT](LICENSE)
 
 [![CI](https://github.com/shihchengwei-lab/codex-metabolism/actions/workflows/ci.yml/badge.svg)](https://github.com/shihchengwei-lab/codex-metabolism/actions/workflows/ci.yml)
 
-Codex is good at solving the task in front of it. Over time, however, its collaboration environment accumulates skills, rules, scripts, hooks, and one-off fixes. Useful paths become hard to find, stale paths remain forever, and the same human correction can return in another session.
+Codex is good at solving the task in front of it. Over time, however, the same human correction can return while skills, rules, scripts, hooks, and one-off fixes keep piling up. **Accumulation is not improvement.**
 
-**Codex Metabolism is an Agent Skill for improving that collaboration layer.** The active Codex Agent reads bounded evidence from recent sessions, recognizes reusable work and recurring friction, searches for existing capabilities, and authors the smallest suitable improvement. A small standard-library runtime preserves evidence and convergent target histories, binds approval to exact proposal bytes, and directly manages only the Skill mutations it can safely reverse.
+**Codex Metabolism is an Agent Skill for improving that collaboration layer.** The active GPT-5.6 Codex Agent reviews bounded recent-session evidence, checks existing capabilities first, and chooses among reuse or no change, a complete `CREATE` or `PATCH` artifact, or a `RETIRE_CANDIDATE`. Like slime mold, later evidence can reinforce, repair, or withdraw a path.
 
-**Codex owns semantic interpretation and artifact design; the runtime owns evidence boundaries, persistence, and safe mutation. The human owns the gate.**
+> **Real-session proof:** one seven-day review reduced **14 rollout files** to **six independent sessions** after collapsing eight fork/snapshot files and **210 duplicate user events**. That evidence changed the parser, surfaced scheduling friction, and produced an honest `NO CHANGE / REUSE` when an existing rule already covered the behavior. [Read the case study](docs/REAL_SESSION_EVALUATION.md).
+
+### Judge it in 60 seconds
+
+From a clone, with no API key, login, install, or personal data:
+
+```bash
+python examples/run_agent_first_demo.py
+python examples/run_real_session_evaluation.py
+```
+
+**Codex owns semantic interpretation and artifact design. The runtime owns evidence boundaries, persistence, and safe mutation. The human owns the gate. In short: Agent thinks; the runtime remembers and constrains. Here, the Agent is GPT-5.6 in Codex.**
 
 ## Why is there a program at all?
 
@@ -80,7 +91,7 @@ recent sessions + collaboration portfolio
                   +--- keep / repair / rollback
 ```
 
-This is why the slime-mold metaphor matters. Later evidence returns beside the original success condition and withdrawal condition, so Codex and the human can reinforce, repair, or retire the same path instead of merely adding another one. **Everyone else can keep doing addition. Metabolism adds selection, validation, and subtraction.**
+This is why the slime-mold metaphor matters. Codex can still create a new path. Metabolism closes the lifecycle around it: search before creation, stage exact evidence and bytes for human approval, then revisit later evidence to reinforce, repair, or propose retirement.
 
 ![Agent-first Codex Metabolism loop: Codex interprets and authors, the runtime validates, and the human approves](docs/assets/agent-first-loop.svg)
 
