@@ -21,6 +21,38 @@ def _seconds(timestamp: str) -> float:
 
 
 class SubmissionDocsTests(unittest.TestCase):
+    def test_devpost_project_story_is_bounded_and_scannable(self) -> None:
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+        story = devpost.split("## Inspiration", 1)[1].split("## Submission checklist", 1)[0]
+
+        self.assertLessEqual(len(re.findall(r"\b[\w'-]+\b", story)), 900)
+        for heading in (
+            "## Inspiration",
+            "## What it does",
+            "## How we built it",
+            "## Challenges",
+            "## Accomplishments",
+            "## What we learned",
+            "## Demo video",
+            "## What's next",
+        ):
+            self.assertEqual(devpost.count(heading), 1)
+        for required in (
+            "literal goblin problem",
+            "Hermes Agent",
+            "Claude Code Insights",
+            "session-analytics",
+            "GPT-5.6 is the semantic interpreter",
+            "deterministic code is the evidence and safety envelope",
+            "human is the mutation gate",
+            "**Parse gaps must remain unknown.**",
+            "**Silence is not success.**",
+            "**Trust was the product boundary.**",
+            "collaboration layer",
+            "long-term goal",
+        ):
+            self.assertIn(required, story)
+
     def test_public_docs_present_gpt_as_interpreter_and_deterministic_code_as_gate(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
@@ -341,13 +373,8 @@ class SubmissionDocsTests(unittest.TestCase):
             "overdue",
         ):
             self.assertIn(required, traditional)
-        for required in (
-            "opt-in native scheduler",
-            "stage-only review",
-            "heartbeat",
-            "no new sessions",
-        ):
-            self.assertIn(required, devpost)
+        self.assertIn("opt-in scheduler", devpost)
+        self.assertIn("stage-only", devpost)
 
     def test_video_pack_is_timed_under_three_minutes_and_covers_required_topics(self) -> None:
         production_guide = ROOT / "docs" / "DEMO_VIDEO.md"
@@ -446,26 +473,14 @@ class SubmissionDocsTests(unittest.TestCase):
     def test_devpost_names_the_non_command_order_replay(self) -> None:
         devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
 
-        for required in (
-            "python examples/run_friction_cases_demo.py",
-            "adopts the reviewed `codlogs` tool",
-            "patches an existing `$ui-verification` skill",
-            "Neither correction is a command-order rule",
-        ):
-            self.assertIn(required, devpost)
+        self.assertIn("README.md", devpost)
+        self.assertIn("cross-layer", devpost)
 
     def test_devpost_names_the_imperfect_data_pressure_test(self) -> None:
         devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
 
-        for required in (
-            "python examples/run_messy_evidence_demo.py",
-            "one evidence-backed decision",
-            "two explicit abstentions",
-            "one parser coverage warning",
-            "zero unsafe retirement decisions",
-            "ordinary `--export-evidence` review exports emitted decisions only",
-        ):
-            self.assertIn(required, devpost)
+        self.assertIn("EVALUATION.md", devpost)
+        self.assertIn("synthetic", devpost)
 
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         traditional = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
