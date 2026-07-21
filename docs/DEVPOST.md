@@ -32,6 +32,8 @@ codex-metabolism review --days 7 --advisor codex
 
 **Current MVP boundary:** GPT-5.6 is the semantic interpreter; deterministic code is the evidence and safety envelope; the human is the mutation gate.
 
+**The model does not retrain; the collaboration layer learns from repeated use.**
+
 The review:
 
 - observes bounded reusable workflow candidates, feedback, interruptions, failures, recoveries, installed skills, tools, and active `AGENTS.md` scopes;

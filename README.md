@@ -96,6 +96,8 @@ The replay also writes `friction-evidence.csv`: one decision and two explicit ab
 
 A memory store decides what to remember. A generator drafts another skill. A dashboard explains the past. **Codex Metabolism manages the lifecycle of the intervention portfolio.**
 
+**Codex Metabolism borrows the logic of unsupervised learning without retraining the model.** It looks for patterns in largely unlabeled collaboration sessions, asks GPT-5.6 to interpret bounded evidence, and lets the human decide which adaptations belong in the shared collaboration layer. **The model does not retrain. The collaboration layer learns.**
+
 | Layer | Use it when | Examples |
 |---|---|---|
 | `HARNESS` | prevention can be mechanical | hooks, tests, scripts, config |

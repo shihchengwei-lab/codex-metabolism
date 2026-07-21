@@ -88,6 +88,22 @@ class SubmissionDocsTests(unittest.TestCase):
         self.assertIn("reusable workflow", devpost)
         self.assertIn("human and AI improve the layer between them", video)
 
+    def test_public_docs_frame_learning_at_the_collaboration_layer(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        devpost = (ROOT / "docs" / "DEVPOST.md").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "borrows the logic of unsupervised learning without retraining the model",
+            readme,
+        )
+        self.assertIn("The model does not retrain. The collaboration layer learns.", readme)
+        self.assertIn(
+            "The model does not retrain; the collaboration layer learns from repeated use.",
+            devpost,
+        )
+        self.assertNotIn("Codex Metabolism is unsupervised learning", readme)
+        self.assertNotIn("Codex Metabolism is unsupervised learning", devpost)
+
     def test_real_session_review_states_the_current_mvp_boundary(self) -> None:
         review_path = ROOT / "docs" / "REAL_SESSION_REVIEW.md"
         self.assertTrue(review_path.is_file())
