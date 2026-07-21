@@ -51,6 +51,8 @@ Codex 會：
 6. 顯示證據、不確定性、預期效果、回滾條件、完整 diff 與 approval digest；
 7. 等人類明確批准後才改 live state。
 
+第一次由使用者主動 review 後，Skill 會提供一次可選提醒：建議在你的**每週用量重置**前建立 Codex 原生 **Scheduled task**。工具無法可靠推測每個帳號的重置時間，因此由你提供時間。排程只能準備與 stage review，不能 apply、record、退休、commit 或 push；結果留在 Scheduled inbox，等待之後的互動式人工決定。完整 prompt 見 [stage-only 排程範本](references/scheduled-review.md)。
+
 ## 代謝迴圈
 
 ```text
@@ -109,6 +111,16 @@ python examples/run_agent_first_demo.py --prepare-only --output-root .demo-live
 
 在 [fresh-Agent forward test](docs/FORWARD_TEST.md) 中，一個未參與重構的 Codex Agent 檢查 synthetic target 後，沒有照 fixture 建 skill，而是寫出更小的 `PATCH / HARNESS`；實際 patch 通過 `git apply --check`，runtime 完成 staging，target 完全未變。
 
+## 真實 session 評估
+
+Synthetic demo 仍是最快、可重現的安全測試；另一份公開案例使用一位使用者七天內的**真實 Codex sessions**。Raw logs 留在本機，repo 只提交人工改寫並去識別化的證據：
+
+```bash
+python examples/run_real_session_evaluation.py
+```
+
+這次實跑解析 14/14 個 rollout files，卻發現只有六個獨立 session：八份 child-Agent fork／snapshot 與 210 個雙重序列化的 user events 原本都會讓證據膨脹；單一長 session 還超過兩千個 events。修正後會折疊重複來源、只接受明確 user-message events、每個 capsule 硬性限制為 160 個 events，並公開所有抽樣數字。Agent 另外提出一項原生排程修補，也因既有規則已涵蓋另一個問題而選擇不新增規則。方法與限制見 [真實 session evaluation](docs/REAL_SESSION_EVALUATION.md)。
+
 ## 可以改善哪些層？
 
 | 層 | 核准後由誰實作？ | 例子 |
@@ -151,7 +163,7 @@ restore   恢復一個已批准的 retired skill
 
 ## 目前邊界
 
-已完成：中性 observation、合法的零變更 review、Agent-authored proposal validation、approval-digest binding、human-gated Skill lifecycle、action-accurate 非 Skill receipts、可收斂的 target 歷史與可逆 Skill archive。
+已完成：帶 fork／event 去重與公開抽樣數字的中性 observation、合法的零變更 review、Agent-authored proposal validation、approval-digest binding、human-gated Skill lifecycle、action-accurate 非 Skill receipts、可收斂的 target 歷史、可逆 Skill archive，以及 opt-in 的原生 scheduled review prompt。
 
 尚未證明：真實世界 precision/recall、因果改善、自動判斷 intervention 成效、長期 impact。後續 Codex 可以解讀新證據與 receipts，但 **silence is not success**，runtime 不會硬造 verdict。
 
@@ -162,6 +174,7 @@ restore   恢復一個已批准的 retired skill
 ```powershell
 python -m unittest discover -s tests -v
 python examples/run_agent_first_demo.py
+python examples/run_real_session_evaluation.py
 python -m build
 ```
 

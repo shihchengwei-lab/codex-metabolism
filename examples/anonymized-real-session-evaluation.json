@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "title": "Anonymized real-session evaluation",
+  "provenance": {
+    "source": "real_codex_sessions",
+    "observed_at": "2026-07-21",
+    "window_days": 7,
+    "participant_count": 1,
+    "raw_logs_committed": false,
+    "runtime_version": "0.2.1",
+    "local_source_packet_sha256": "05a94b20da284d51d9378ac56877533c204c23bad721be2301182410c8e18e4d",
+    "transformation": "The active Codex Agent manually paraphrased selected evidence after runtime redaction. Project names, account names, paths, raw session identifiers, and verbatim private transcripts were omitted.",
+    "claim_boundary": "This is a small product case study, not a precision/recall benchmark or evidence of causal improvement."
+  },
+  "coverage": {
+    "files_selected": 14,
+    "files_parsed": 14,
+    "unique_sessions": 6,
+    "duplicate_session_files": 8,
+    "duplicate_user_events": 210,
+    "parse_errors": 0,
+    "skill_invocation": "heuristic",
+    "max_events_per_session": 160
+  },
+  "cases": [
+    {
+      "id": "real-case-evidence-inflation",
+      "title": "Forked logs inflated one collaboration session",
+      "evidence": [
+        "Fourteen recent rollout files represented six independent sessions; eight inherited fork or snapshot files repeated a parent session.",
+        "The same user turn was commonly serialized as adjacent response-item and event-message records; 210 duplicates were collapsed.",
+        "The longest retained session exposed 2,249 events. The bounded capsule disclosed that it sampled 160 and omitted 2,089."
+      ],
+      "agent_judgment": "The evidence substrate was overweighting one long collaboration and allowing tool traffic to crowd out user intent. That is a runtime evidence-quality defect, not a semantic friction judgment.",
+      "recommended_outcome": "PATCH / HARNESS: collapse inherited session files, deduplicate dual user-message serialization, accept only explicit user-message sources, and disclose bounded sampling.",
+      "status": "implemented_and_regression_tested"
+    },
+    {
+      "id": "real-case-schedule-discoverability",
+      "title": "Invisible scheduling caused friction in two projects",
+      "evidence": [
+        "In one project, the user asked where scheduling and debug status were and whether the recurring process could be started manually.",
+        "In a later project, the user asked for a default reminder to run a review before the weekly usage reset."
+      ],
+      "agent_judgment": "The recurring problem was discoverability and trust, not the absence of another scheduler implementation. Codex already provides a visible Scheduled inbox and can invoke a Skill on a cadence.",
+      "recommended_outcome": "PATCH / SKILL: after the first user-initiated review, offer an opt-in native Scheduled task that may stage findings but can never apply them.",
+      "status": "implemented_as_native_schedule_contract"
+    },
+    {
+      "id": "real-case-plain-language",
+      "title": "The user repeatedly requested a plain-language explanation",
+      "evidence": [
+        "During a design review, the user asked for four technical fixes to be explained again in plain language.",
+        "In a separate learning project, the user said the Agent had completed work without explaining what the workflow was teaching or why the steps mattered."
+      ],
+      "agent_judgment": "The pattern recurred across independent projects, but the existing global collaboration guidance already requires plain language plus purpose, impact, and risk before state-changing work. Adding another prose rule would duplicate an existing capability.",
+      "recommended_outcome": "NO CHANGE / REUSE: keep the existing guidance, surface this as an adherence problem, and collect later evidence before proposing a mechanical gate.",
+      "status": "abstained_from_duplicate_rule"
+    }
+  ]
+}

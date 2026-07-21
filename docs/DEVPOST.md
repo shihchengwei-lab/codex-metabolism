@@ -32,6 +32,8 @@ and show every proposed diff. Do not apply anything until I approve it.
 
 The runtime turns changing local JSONL into bounded, ordered evidence. **It makes zero semantic decisions.** Codex groups evidence by user intent, distinguishes a reusable trajectory from a retry, searches existing capabilities, and authors zero to three complete improvements. The runtime checks every evidence reference, seals exact artifact bytes, and generates an approval digest. Changing either proposal or artifact invalidates that reviewed digest.
 
+After the first manual review, it offers an opt-in native Codex Scheduled task shortly before the user's weekly usage reset. Scheduled runs are stage-only and return findings to the Scheduled inbox; they can never apply a change.
+
 Approved skills are hash-gated and reversible. Repository harnesses, tools, and bounded rules use existing Git or platform mechanisms; Metabolism preserves the approved proposal hash, the actual implementation-evidence hash, and the correct ACTIVE or RETIRED state so a future review can reason about what changed.
 
 **The model does not retrain. The collaboration layer becomes more inspectable and personal.**
@@ -49,6 +51,10 @@ Human files and Agent-managed artifacts do not share the same authority. Skill c
 ### Agent-first, not an advisor wrapper
 
 GPT-5.6 is the active Codex Agent, not a nested model call hidden behind Python. It performs the hard semantic work and writes the real artifact. Deterministic code can reject unsafe structure, but it cannot choose what a user's interruption means or which intervention layer is best. The human still decides whether anything becomes live.
+
+### Real logs changed the implementation
+
+A seven-day real-session run parsed 14/14 rollout files but found only six independent sessions. Eight child-Agent snapshots, 210 dual-serialized user events, compaction history, and more than two thousand events from one long session exposed evidence inflation that the synthetic fixtures missed. We fixed the parser, capped and disclosed sampling, and committed only paraphrased evidence—not raw private JSONL.
 
 ## Challenges
 
@@ -76,6 +82,7 @@ A self-editing demo is easy to make and hard to trust. Proposal is not permissio
 - A fresh Codex Agent ignored the recorded skill-shaped fixture, reused the repository preflight, and authored a smaller `PATCH / HARNESS`; its patch passed `git apply --check` and remained stage-only.
 - Reject invented evidence IDs, path escapes, stale targets, duplicate IDs, unknown schema fields, and proposal or artifact changes after approval.
 - Keep the project zero-dependency and test it on Python 3.11/3.12 for Ubuntu and Windows.
+- Publish a de-identified real-session case study containing both a `PATCH` and a `NO CHANGE / REUSE` judgment.
 
 ## What we learned
 
@@ -97,6 +104,6 @@ The long-term loop is: an Agent completes difficult or repeated work, captures a
 
 ## Honest boundary
 
-The current release implements observation → zero-to-three Agent proposals → validation and approval digest → human decision → action-accurate receipt → Skill rollback or native external rollback. Each target's next review receives its prior reasoning, evidence, expected effect, withdrawal condition, and bounded status history. The public replay is synthetic. It does **not** claim real-world precision/recall, causal improvement, automatic intervention evaluation, or long-term impact.
+The current release implements observation → zero-to-three Agent proposals → validation and approval digest → human decision → action-accurate receipt → Skill rollback or native external rollback. Each target's next review receives its prior reasoning, evidence, expected effect, withdrawal condition, and bounded status history. The isolated replay is synthetic; a separate one-user case study uses de-identified real-session evidence. It does **not** claim real-world precision/recall, causal improvement, automatic intervention evaluation, or long-term impact.
 
 The [README](../README.md) contains installation, safety details, and the current command surface. The [video production pack](DEMO_VIDEO.md) describes an Agent-first replacement demo.

@@ -18,6 +18,10 @@ class PublicSurfaceContractTests(unittest.TestCase):
         self.assertIn("runtime owns evidence boundaries, persistence, and safe mutation", readme)
         self.assertIn("$codex-metabolism", readme)
         self.assertIn("python examples/run_agent_first_demo.py", readme)
+        self.assertIn("python examples/run_real_session_evaluation.py", readme)
+        self.assertIn("real Codex sessions", readme)
+        self.assertIn("weekly usage reset", readme)
+        self.assertIn("native Scheduled task", readme)
         self.assertIn("zero to three", readme)
         self.assertIn("approval digest", readme)
         self.assertIn("existing Git/repository mechanism", readme)
@@ -47,11 +51,18 @@ class PublicSurfaceContractTests(unittest.TestCase):
         project = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
 
-        for packaged in ("SKILL.md", "agents/openai.yaml", "references/*.md"):
+        for packaged in (
+            "SKILL.md",
+            "agents/openai.yaml",
+            "references/*.md",
+            "examples/run_real_session_evaluation.py",
+            "examples/anonymized-real-session-evaluation.json",
+        ):
             self.assertIn(packaged, manifest)
-        self.assertIn('version = "0.2.0"', project)
-        self.assertEqual(codex_metabolism.__version__, "0.2.0")
+        self.assertIn('version = "0.2.1"', project)
+        self.assertEqual(codex_metabolism.__version__, "0.2.1")
         self.assertIn("run_agent_first_demo.py", workflow)
+        self.assertIn("run_real_session_evaluation.py", workflow)
         for stale in (
             "run_closed_loop_demo.py",
             "run_friction_cases_demo.py",
@@ -86,6 +97,21 @@ class PublicSurfaceContractTests(unittest.TestCase):
         self.assertIn("git apply --check", report)
         self.assertIn("The target repository remained unchanged", report)
         self.assertIn("not an impact study", report)
+
+    def test_skill_offers_native_scheduling_without_weakening_the_human_gate(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        schedule = (ROOT / "references" / "scheduled-review.md").read_text(encoding="utf-8")
+        chinese = (ROOT / "README.zh-TW.md").read_text(encoding="utf-8")
+
+        self.assertIn("weekly usage reset", skill)
+        self.assertIn("native Codex Scheduled task", skill)
+        self.assertIn("first user-initiated review", skill)
+        self.assertIn("never run `apply`, `record`, `rollback`, or `restore`", skill)
+        self.assertIn("$codex-metabolism", schedule)
+        self.assertIn("STAGE ONLY", schedule)
+        self.assertIn("Do not apply, record, rollback, restore", schedule)
+        self.assertIn("每週用量重置", chinese)
+        self.assertIn("Scheduled task", chinese)
 
 
 if __name__ == "__main__":

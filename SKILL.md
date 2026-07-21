@@ -112,6 +112,14 @@ For `RULE`, respect existing ownership boundaries and managed-region validators.
 
 Treat one output directory as single-writer: do not run apply, record, rollback, or restore concurrently against the same `.codex-metabolism` ledger.
 
+## Offer a native schedule
+
+After the first user-initiated review, make one concise opt-in offer to run future reviews shortly before the user's weekly usage reset. Codex Metabolism cannot reliably infer that reset time, so ask the user to provide it. Do not create a schedule merely because the review was requested.
+
+After explicit confirmation, use a native Codex Scheduled task and the exact stage-only prompt in [references/scheduled-review.md](references/scheduled-review.md). Do not restore the removed custom scheduler. A scheduled review may observe, interpret, draft, validate, and stage. It must never run `apply`, `record`, `rollback`, or `restore`, install or disable tools, edit live rules or harnesses, commit, push, or archive anything.
+
+Do not repeat the scheduling offer from a scheduled run. Send findings to the Scheduled inbox so the user can open a later interactive Codex conversation, inspect the exact diff and digest, and approve or reject it there.
+
 ## Re-evaluate
 
 On a later review, inspect the target's receipt history alongside post-activation session evidence. Compare the original reasoning, expected effect, evidence IDs, and rollback condition with what actually happened. No change remains a report result; repair or retirement goes through the same draft -> stage -> digest approval path.

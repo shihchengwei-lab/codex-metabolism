@@ -42,5 +42,8 @@ jobs:
       - name: Run Agent-first demo
         run: python examples/run_agent_first_demo.py
 
+      - name: Validate anonymized real-session evaluation
+        run: python examples/run_real_session_evaluation.py
+
       - name: Build distribution artifacts
         run: python -m build

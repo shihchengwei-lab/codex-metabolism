@@ -17,6 +17,8 @@ _SECRET_TOKEN_RE = re.compile(r"(?i)\bsk-[a-z0-9_-]{8,}\b")
 _SECRET_ASSIGNMENT_RE = re.compile(
     r"(?i)\b(token|api[_-]?key|password|secret)\s*[:=]\s*([^\s`]+)"
 )
+MAX_EVENTS_PER_SESSION = 160
+MAX_USER_EVENTS_PER_SESSION = 80
 
 
 def _digest(*values: str) -> str:
@@ -46,23 +48,35 @@ def _redact(text: str, sensitive_paths: list[str]) -> str:
     return result
 
 
+def _evenly_select(items: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
+    if limit <= 0:
+        return []
+    if len(items) <= limit:
+        return items
+    if limit == 1:
+        return [items[-1]]
+    indexes = [index * (len(items) - 1) // (limit - 1) for index in range(limit)]
+    return [items[index] for index in indexes]
+
+
 def _session_capsules(observation: Observation, *, limit: int) -> list[dict[str, Any]]:
     capsules: list[dict[str, Any]] = []
     for session in reversed(observation.sessions[-limit:]):
         identity, session_key, project_key = _session_keys(session)
         sensitive_paths = [observation.codex_home, observation.project_root, session.cwd or ""]
-        events: list[dict[str, Any]] = []
-        for message in session.messages:
-            events.append(
+        message_events: list[dict[str, Any]] = []
+        for ordinal, message in enumerate(session.messages):
+            message_events.append(
                 {
-                    "id": f"evidence-{_digest(identity, 'message', str(message.sequence))}",
+                    "id": f"evidence-{_digest(identity, 'message', str(message.sequence), str(ordinal), message.text)}",
                     "kind": "user_message",
                     "sequence": message.sequence,
                     "excerpt": _redact(message.text, sensitive_paths)[:200],
                 }
             )
+        tool_events: list[dict[str, Any]] = []
         for tool in session.tool_executions:
-            events.append(
+            tool_events.append(
                 {
                     "id": f"evidence-{_digest(identity, 'tool', tool.call_id)}",
                     "kind": "tool_execution",
@@ -73,15 +87,38 @@ def _session_capsules(observation: Observation, *, limit: int) -> list[dict[str,
                     "output_excerpt": _redact(tool.output_excerpt, sensitive_paths)[:240],
                 }
             )
+        interruption_events: list[dict[str, Any]] = []
         if session.interrupted_turns:
-            events.append(
+            interruption_events.append(
                 {
                     "id": f"evidence-{_digest(identity, 'interruptions')}",
                     "kind": "interrupted_turns",
                     "occurrence_count": session.interrupted_turns,
                 }
             )
+        observed_counts = {
+            "user_message": len(message_events),
+            "tool_execution": len(tool_events),
+            "interrupted_turns": len(interruption_events),
+        }
+        remaining = MAX_EVENTS_PER_SESSION - len(interruption_events)
+        selected_messages = _evenly_select(
+            message_events,
+            min(len(message_events), MAX_USER_EVENTS_PER_SESSION, max(0, remaining)),
+        )
+        remaining -= len(selected_messages)
+        selected_tools = _evenly_select(tool_events, min(len(tool_events), max(0, remaining)))
+        events = sorted(
+            selected_messages + selected_tools + interruption_events,
+            key=lambda item: int(item.get("sequence", 10**12)),
+        )
         if events:
+            included_counts = {
+                "user_message": len(selected_messages),
+                "tool_execution": len(selected_tools),
+                "interrupted_turns": len(interruption_events),
+            }
+            observed = sum(observed_counts.values())
             capsules.append(
                 {
                     "id": f"evidence-{_digest(identity, 'session')}",
@@ -90,7 +127,15 @@ def _session_capsules(observation: Observation, *, limit: int) -> list[dict[str,
                     "project_key": project_key,
                     "timestamp": session.timestamp,
                     "model": session.model,
-                    "events": sorted(events, key=lambda item: int(item.get("sequence", 10**12))),
+                    "event_selection": {
+                        "strategy": "bounded_even_sampling_by_event_kind",
+                        "observed": observed,
+                        "included": len(events),
+                        "truncated": observed - len(events),
+                        "observed_by_kind": observed_counts,
+                        "included_by_kind": included_counts,
+                    },
+                    "events": events,
                 }
             )
     return capsules
