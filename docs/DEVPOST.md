@@ -1,104 +1,102 @@
-# OpenAI Build Week submission
+# Codex Metabolism — project story
 
-## Submission fields
+> **Agent-first architecture:** Codex interprets and authors. A small runtime preserves evidence, binds approval to exact proposal bytes, and safely manages the mutations it owns.
 
-- **Project:** Codex Metabolism
+## Project details
+
 - **Track:** Developer Tools
 - **Tagline:** Let human–AI collaboration grow what helps—and retire what does not.
-- **One sentence:** Codex Metabolism helps a human and coding agent evolve their shared collaboration layer: capture reusable work, find later friction, and decide together what to add, repair, keep, or retire.
 - **Repository:** https://github.com/shihchengwei-lab/codex-metabolism
-- **Demo video:** https://youtu.be/egZhaFeDkRE
-- **Primary `/feedback` Session ID:** Entered in Devpost's organizer-only field; intentionally not repeated here.
-
-## Devpost cover image
-
-![Codex Metabolism closed loop: human and Codex capture useful work, review later friction, validate interventions, and metabolize the shared collaboration layer](assets/metabolism-loop.png)
-
-Editable source: [`assets/metabolism-loop.svg`](assets/metabolism-loop.svg).
+- **Original Build Week video (v0.1):** https://youtu.be/egZhaFeDkRE
+- **Current reproducible demo:** `python examples/run_agent_first_demo.py`
 
 ## Inspiration
 
 OpenAI once documented a [literal goblin problem](https://openai.com/index/where-the-goblins-came-from/): Codex needed a prompt patch saying, “Never talk about goblins.” The patch made sense—but how many rules in your `AGENTS.md` still solve a problem your recent sessions actually have?
 
-Coding agents are excellent at adding memory, rules, skills, and tools. They are worse at proving that an intervention still helps—or removing it when it does not. **Accumulation is not improvement.**
+Coding agents are good at adding memory, rules, skills, and tools. They are worse at proving that an intervention still helps—or removing it when it does not. **Accumulation is not improvement.**
 
-Codex Metabolism borrows its mental model from slime mold: useful work opens a path, future traffic reinforces or repairs it, and unsupported branches fade. The original inspirations were Hermes Agent's agent-managed skill creation, Claude Code Insights' session-level retrospectives, and my MIT-licensed [`session-analytics`](https://github.com/shihchengwei-lab/session-analytics) project. SkillReaper was discovered later through our existing-tool ladder and integrated as optional lifecycle evidence—not claimed as an original inspiration.
+Codex Metabolism borrows its mental model from slime mold: useful work opens a path, later traffic reveals whether to reinforce or repair it, and unsupported branches fade.
+
+The original inspirations were Hermes Agent's agent-managed skill creation, Claude Code Insights' session retrospectives, and my MIT-licensed [`session-analytics`](https://github.com/shihchengwei-lab/session-analytics) project.
 
 ## What it does
 
-```bash
-codex-metabolism review --days 7 --advisor codex
+Codex Metabolism is a skill the active Codex Agent uses to review its recent collaboration with one person.
+
+```text
+Use $codex-metabolism to review my last 7 days.
+Find reusable work and recurring friction, check existing capabilities first,
+and show every proposed diff. Do not apply anything until I approve it.
 ```
 
-**Current MVP boundary:** GPT-5.6 is the semantic interpreter; deterministic code is the evidence and safety envelope; the human is the mutation gate.
+The runtime turns changing local JSONL into bounded, ordered evidence. **It makes zero semantic decisions.** Codex groups evidence by user intent, distinguishes a reusable trajectory from a retry, searches existing capabilities, and authors zero to three complete improvements. The runtime checks every evidence reference, seals exact artifact bytes, and generates an approval digest. Changing either proposal or artifact invalidates that reviewed digest.
 
-**The model does not retrain; the collaboration layer learns from repeated use.**
+Approved skills are hash-gated and reversible. Repository harnesses, tools, and bounded rules use existing Git or platform mechanisms; Metabolism preserves the approved proposal hash, the actual implementation-evidence hash, and the correct ACTIVE or RETIRED state so a future review can reason about what changed.
 
-The review:
-
-- observes bounded reusable workflow candidates, feedback, interruptions, failures, recoveries, installed skills, tools, and active `AGENTS.md` scopes;
-- asks GPT-5.6 what looks reusable and what still causes friction, without treating tool activity or silence as proof of success;
-- checks necessity → Codex built-ins → installed capabilities → repository assets → external tools before proposing anything new;
-- stages only `CREATE`, `PATCH`, `KEEP`, or `RETIRE_CANDIDATE` across `HARNESS`, `TOOL`, `SKILL`, and bounded `RULE` layers.
-
-Approved interventions receive receipts so future sessions can validate, repair, roll back, or archive them. An opt-in scheduler can launch a local, stage-only review; it never applies changes automatically.
-
-The public demo uses synthetic sessions to exercise the implemented lifecycle. Real-session review currently demonstrates observation, semantic recommendations, and honest abstention—not causal improvement. Proving durable improvement over future sessions is the long-term goal.
-
-Detailed judge paths, cross-layer examples, and installation instructions are in [`README.md`](../README.md). Detector limits are published in [`EVALUATION.md`](EVALUATION.md), and the privacy-safe real review is in [`REAL_SESSION_REVIEW.md`](REAL_SESSION_REVIEW.md).
+**The model does not retrain. The collaboration layer becomes more inspectable and personal.**
 
 ## How we built it
 
-- **Only the standard library.** The Python 3.11+ runtime streams JSONL, bounds excerpts, reports parser coverage, inventories the environment, stages artifacts, and records reversible receipts without adding a dependency stack to a cleanup tool.
-- **Mixed ownership + hash-gated apply.** Codex Metabolism evaluates the whole `AGENTS.md`, but can only rewrite an existing marked region after approval. Everything outside it remains suggestion-only; full-file hashes prevent stale patches.
-- **A non-authoritative advisor.** GPT-5.6 runs through ephemeral, read-only `codex exec` with strict schemas and cited evidence IDs. In one synthetic run it agreed with `CREATE HARNESS` but challenged `PATCH RULE` with `KEEP RULE`; deterministic gates and human approval still won. In a real review it also exposed duplicate candidate IDs, which we converted into a pre-analysis integrity check and regression test.
+### Only the standard library
+
+The Python 3.11+ substrate streams JSONL, bounds excerpts, reports coverage, inventories installed skills and `AGENTS.md` metadata, writes atomically, and preserves receipts without adding a dependency stack to a cleanup tool.
+
+### Mixed ownership + hash-gated apply
+
+Human files and Agent-managed artifacts do not share the same authority. Skill changes cite an observed target, seal a base hash, and fail if either the live file or reviewed artifact changes. Non-skill changes are never secretly implemented by the runtime.
+
+### Agent-first, not an advisor wrapper
+
+GPT-5.6 is the active Codex Agent, not a nested model call hidden behind Python. It performs the hard semantic work and writes the real artifact. Deterministic code can reject unsafe structure, but it cannot choose what a user's interruption means or which intervention layer is best. The human still decides whether anything becomes live.
 
 ## Challenges
 
-**Parse gaps must remain unknown.** Codex JSONL is useful but not a stable public analytics schema, so failed coverage can never be relabeled as non-use.
+> **Parse gaps must remain unknown.**
 
-**Silence is not success.** Exit codes and tests are stronger signals than “the user did not complain.” Workflow activity can nominate a candidate, but it cannot prove that the task finished or deserves a skill.
+Codex JSONL is useful but not a stable public analytics schema. Coverage failures can never be relabeled as non-use.
 
-**Trust was the product boundary.** A self-editing system is easy to demo and hard to trust. Every proposal is staged, model output stays advisory, human-owned text is protected, and retirement means reversible archive rather than silent deletion.
+---
+
+> **Silence is not success.**
+
+Exit codes and tests are stronger signals than “the user did not complain.” Even a successful tool call cannot prove that a task deserves a skill—or that an intervention helped later.
+
+---
+
+> **Trust was the product boundary.**
+
+A self-editing demo is easy to make and hard to trust. Proposal is not permission: Skill apply is bound to the exact digest the user reviewed, and retirement means archive, not silent deletion. A CLI cannot authenticate human identity, so Codex must still wait for explicit approval in the conversation. Non-skill changes retain the native Git or platform rollback path instead of pretending the runtime owns them.
 
 ## Accomplishments
 
-- One zero-install demo replays proposal → human approval → later validation → duplicate suppression.
-- The 27-case detector boundary evaluation reports 1.000 precision, 0.500 recall, and zero false positives; the public video shows the current 27-case suite. These are synthetic boundary results, not real-world impact.
-- A 30-day real review parsed 213/213 Codex session files. GPT-5.6 reviewed 24 unique pseudonymous candidates, produced four evidence-citing recommendations, and proposed zero skill captures because completion evidence was insufficient.
-- Review spans mechanical safeguards, existing tools, skills, and bounded rules while keeping every live mutation human-gated and reversible.
+- Replaced a large deterministic decision engine with a small Agent-first contract.
+- Reduced the runtime to neutral observation, proposal validation, receipts, safe mutation, and rollback.
+- Added an isolated demo whose first line is `Runtime interpretation: 0 semantic decisions`.
+- A fresh Codex Agent ignored the recorded skill-shaped fixture, reused the repository preflight, and authored a smaller `PATCH / HARNESS`; its patch passed `git apply --check` and remained stage-only.
+- Reject invented evidence IDs, path escapes, stale targets, duplicate IDs, unknown schema fields, and proposal or artifact changes after approval.
+- Keep the project zero-dependency and test it on Python 3.11/3.12 for Ubuntu and Windows.
 
 ## What we learned
 
-“Self-improving agent” is too vague. The model weights are not changing here; the procedural collaboration layer is.
+The first version extracted ideas from Agent products but accidentally removed the Agent from the center. Python tried to infer friction with exact patterns while GPT-5.6 sat outside as an optional advisor. The result was safe, but conceptually backward.
 
-Skill creation is only growth. Metabolism also requires future use, friction review, validation, repair, and subtraction. That lifecycle—not another generated skill—is the product.
+The better division is simple:
 
-## Demo video
+- **Codex understands and creates.**
+- **The runtime remembers and constrains.**
+- **The human approves an exact digest; Skill mutations are reversible, while other layers retain their native rollback path.**
 
-The [public YouTube demo](https://youtu.be/egZhaFeDkRE) uses a 2:40 English voiceover and synthetic data. The production notes and timed captions are in [`DEMO_VIDEO.md`](DEMO_VIDEO.md) and [`demo-voiceover.en.srt`](demo-voiceover.en.srt).
+That makes the program necessary without pretending it is intelligent.
 
 ## What's next
 
-Models keep improving, and users keep learning how to work with them. The collaboration layer between them should grow too.
+Models improve, and users learn how to work with them. The collaboration layer between them should improve too.
 
-The next step is to let Codex propose a skill immediately after a human-confirmed difficult or recurring success, then let Metabolism follow that intervention through future sessions: did it reduce friction, need repair, or stop earning its cost? With stronger outcome evidence and longer opt-in evaluation, this loop could become a native Codex capability—personal without being opaque, adaptive without giving up human control.
+The long-term loop is: an Agent completes difficult or repeated work, captures a reusable path, encounters new friction in later sessions, and reviews with the human what deserves reinforcement, repair, or withdrawal. With stronger longitudinal outcome evidence, this could become a native Codex capability: personal without becoming opaque, adaptive without surrendering control.
 
-## Submission checklist
+## Honest boundary
 
-The [OpenAI Build Week page](https://openai.devpost.com/) requires a working project using Codex with GPT-5.6, a public YouTube demo under three minutes, a testable repository, and the primary `/feedback` Session ID. Developer tools also need installation instructions, supported platforms, and a judge-ready test path.
+The current release implements observation → zero-to-three Agent proposals → validation and approval digest → human decision → action-accurate receipt → Skill rollback or native external rollback. Each target's next review receives its prior reasoning, evidence, expected effect, withdrawal condition, and bounded status history. The public replay is synthetic. It does **not** claim real-world precision/recall, causal improvement, automatic intervention evaluation, or long-term impact.
 
-- [x] Working local project.
-- [x] Developer Tools category selected in project copy.
-- [x] Setup instructions and sample data.
-- [x] One-command isolated two-generation demo.
-- [x] Supported-platform status stated honestly.
-- [x] Independent Linux + Python 3.12 clean-clone verification completed.
-- [x] Codex/GPT-5.6 contribution and human decisions documented.
-- [x] English voiceover script, timed captions, and privacy-safe shot list prepared.
-- [x] Publish repository: https://github.com/shihchengwei-lab/codex-metabolism
-- [x] Upload the rendered video to public YouTube: https://youtu.be/egZhaFeDkRE
-- [x] Enter the `/feedback` Codex Session ID in the organizer-only field.
-- [x] Submit the Devpost project form.
-
-Submission status was confirmed on Devpost on **July 20, 2026**: `Submitted`, with `5/5 steps done`. The listed deadline remains **July 21, 2026 at 5:00 PM Pacific Time**.
+The [README](../README.md) contains installation, safety details, and the current command surface. The [video production pack](DEMO_VIDEO.md) describes an Agent-first replacement demo.

@@ -12,18 +12,9 @@ class Coverage:
     skill_invocation: str = "unavailable"
     structured_skill_events: int = 0
     heuristic_skill_events: int = 0
-    catalog_checked: bool = False
-    skill_lifecycle_source: str = "local-positive-only"
-    skill_lifecycle_complete: bool = False
-
-    @property
-    def retirement_safe(self) -> bool:
-        return self.skill_lifecycle_source == "skillreaper" and self.skill_lifecycle_complete
 
     def to_dict(self) -> dict[str, Any]:
-        payload = asdict(self)
-        payload["retirement_safe"] = self.retirement_safe
-        return payload
+        return asdict(self)
 
 
 @dataclass(slots=True)
@@ -52,8 +43,6 @@ class SessionObservation:
     model: str | None
     source_file: str
     messages: list[UserMessage] = field(default_factory=list)
-    corrections: list[UserMessage] = field(default_factory=list)
-    feedback_candidates: list[UserMessage] = field(default_factory=list)
     interrupted_turns: int = 0
     tool_executions: list[ToolExecution] = field(default_factory=list)
     skill_signals: set[str] = field(default_factory=set)
@@ -73,13 +62,6 @@ class InstalledSkill:
 
 
 @dataclass(slots=True)
-class RepoAsset:
-    path: str
-    kind: str
-    searchable_text: str
-
-
-@dataclass(slots=True)
 class AgentsDocument:
     path: str
     scope: str
@@ -87,29 +69,12 @@ class AgentsDocument:
     content_sha256: str
     byte_count: int
     line_count: int
-    codex_context_limit: int
-    whole_document_evaluated: bool
-    content: str = field(repr=False)
-    decode_errors: int = 0
-
-
-@dataclass(slots=True)
-class SkillLifecycleEvidence:
-    source: str
-    skill_name: str
-    skill_path: str
-    verdict: str
-    reason: str
-    uses: int
-    sessions: int
-    removable: bool
-    complete: bool
-    generated_at: str | None = None
+    whole_document_available: bool
 
 
 @dataclass(slots=True)
 class InterventionReceipt:
-    decision_id: str
+    intervention_id: str
     target_kind: str
     target: str
     mechanism: str
@@ -117,9 +82,11 @@ class InterventionReceipt:
     status: str
     activated_at: str
     artifact_path: str
-    signature: str | None = None
+    proposal_id: str = ""
+    reasoning: str = ""
     expected_effect: str = ""
-    baseline_session_ids: list[str] = field(default_factory=list)
+    rollback_when: str = ""
+    evidence_ids: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -130,33 +97,10 @@ class InterventionReceipt:
 class Observation:
     codex_home: str
     project_root: str
+    skill_roots: list[str]
     days: float
     sessions: list[SessionObservation]
     skills: list[InstalledSkill]
-    repo_assets: list[RepoAsset]
-    catalog_entries: list[dict[str, Any]]
     coverage: Coverage
-    installed_tools: list[dict[str, Any]] = field(default_factory=list)
     agents_documents: list[AgentsDocument] = field(default_factory=list)
-    lifecycle_evidence: list[SkillLifecycleEvidence] = field(default_factory=list)
     intervention_records: list[InterventionReceipt] = field(default_factory=list)
-
-
-@dataclass(slots=True)
-class Decision:
-    id: str
-    decision: str
-    target_kind: str
-    target: str
-    mechanism: str
-    evidence: list[dict[str, Any]]
-    confidence: str
-    proposed_change: str
-    coverage: dict[str, Any]
-    adoption_ladder: list[dict[str, Any]]
-    readiness: str = "ready"
-    status: str = "proposed"
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)

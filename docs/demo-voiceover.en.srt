@@ -1,54 +1,69 @@
 1
-00:00:00,000 --> 00:00:14,000
-A human and Codex finally complete a difficult task. Its reusable path could become a skill.
-But future sessions still hit friction, while old rules and tools keep accumulating.
+00:00:00,000 --> 00:00:11,000
+The same correction returns in another session,
+while rules and skills keep piling up.
 
 2
-00:00:14,000 --> 00:00:32,000
-Codex Metabolism lets human and AI improve the layer between them. Like slime mold, it grows candidate paths from useful work;
-later use brightens what works, while unsupported branches fade.
+00:00:11,000 --> 00:00:24,000
+Accumulation is not improvement.
+Useful paths should brighten; unused branches should fade.
 
 3
-00:00:32,000 --> 00:00:45,000
-This is not model training. It is a human-approved collaboration lifecycle: capture reusable work, observe future sessions,
-then decide whether a skill, safeguard, or rule should be created, repaired, kept, or archived.
+00:00:24,000 --> 00:00:36,000
+That is Codex Metabolism:
+selection, validation, and subtraction for collaboration.
 
 4
-00:00:45,000 --> 00:00:59,000
-Failure, explicit correction, and same-command recovery repeat across two sessions.
-One zero-install review stages CREATE HARNESS plus three lifecycle decisions, and changes nothing live.
+00:00:36,000 --> 00:00:49,000
+Codex understands the work and authors the improvement.
+The runtime remembers and constrains. The human decides.
 
 5
-00:00:59,000 --> 00:01:14,000
-Before creating anything, it checks necessity, Codex built-ins, installed capabilities, repository assets,
-and reviewed open source. If an existing path works, creation is blocked.
+00:00:49,000 --> 00:01:00,000
+First, the runtime prepares bounded, ordered evidence.
+It makes zero semantic decisions.
 
 6
-00:01:14,000 --> 00:01:28,000
-For this friction, the smallest reliable fix is mechanical: require the exact reviewed preflight-and-deploy sequence.
-Spoofs are denied. A person reviews the evidence and diff before activation.
+00:01:00,000 --> 00:01:12,000
+The active Codex Agent recognizes one workflow
+across different commands and different corrections.
 
 7
-00:01:28,000 --> 00:01:43,000
-Two later sessions succeed. The next review returns KEEP HARNESS, VALIDATED,
-and suppresses the duplicate proposal, so the same fix does not accumulate again.
+00:01:12,000 --> 00:01:25,000
+Before creating anything, it checks built-ins,
+installed capabilities, this repository, and the ecosystem.
 
 8
-00:01:43,000 --> 00:01:58,000
-Other interventions do not get a free pass. Useful skills stay; an unused skill becomes only a retirement candidate.
-Archive and restore remain human decisions. Nothing is silently deleted.
+00:01:25,000 --> 00:01:37,000
+It reuses the repository preflight
+and writes a complete deployment skill.
 
 9
-00:01:58,000 --> 00:02:11,000
-Across twenty-seven synthetic cases: zero false positives and fifty percent recall.
-This is a boundary test—not proof of magical learning or real-world impact.
+00:01:37,000 --> 00:01:49,000
+The proposal cites evidence, states uncertainty,
+predicts an effect, and defines when to roll back.
 
 10
-00:02:11,000 --> 00:02:32,000
-GPT-5.6 model gpt-5.6-sol interprets bounded workflow and friction candidates; in the live replay it challenges PATCH RULE with KEEP RULE.
-Deterministic gates and human approval remain authoritative. The synthetic replay demonstrates the loop—not magical improvement.
+00:01:49,000 --> 00:02:01,000
+The runtime validates every reference and generates a digest.
+Changing the proposal or artifact invalidates approval.
 
 11
-00:02:32,000 --> 00:02:40,000
-Human and Agent can learn from every session together.
-Codex Metabolism helps their shared collaboration layer grow—and let go.
+00:02:01,000 --> 00:02:13,000
+The human approves that exact version before it becomes live.
+The intervention contract returns in the next review.
+
+12
+00:02:13,000 --> 00:02:24,000
+Rollback archives the skill instead of deleting it.
+Other layers keep their existing Git or platform rollback.
+
+13
+00:02:24,000 --> 00:02:35,000
+Later evidence is compared with the original success and withdrawal conditions.
+Silence is not success.
+
+14
+00:02:35,000 --> 00:02:40,000
+Codex Metabolism.
+The Agent thinks. The runtime remembers and constrains.

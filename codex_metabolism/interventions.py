@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+import hashlib
 from dataclasses import fields
 from pathlib import Path
 from typing import Iterable
@@ -14,7 +15,24 @@ class InterventionError(RuntimeError):
     pass
 
 
+def intervention_identity(target_kind: str, target: str, scope: str) -> str:
+    """Return one stable lifecycle identity for a layer/target/scope tuple."""
+    material = "\x1f".join(
+        (target_kind.strip().casefold(), target.strip().casefold(), scope.strip().casefold())
+    )
+    return "intervention-" + hashlib.sha256(material.encode("utf-8")).hexdigest()[:16]
+
+
 def _from_dict(payload: dict) -> InterventionReceipt:
+    if "intervention_id" not in payload and "decision_id" in payload:
+        payload = {**payload, "intervention_id": payload["decision_id"]}
+    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    if not payload.get("proposal_id") and payload.get("intervention_id"):
+        payload = {**payload, "proposal_id": payload["intervention_id"]}
+    if "rollback_when" not in payload and metadata.get("rollback_when") is not None:
+        payload = {**payload, "rollback_when": metadata["rollback_when"]}
+    if "evidence_ids" not in payload and isinstance(metadata.get("evidence_ids"), list):
+        payload = {**payload, "evidence_ids": metadata["evidence_ids"]}
     allowed = {item.name for item in fields(InterventionReceipt)}
     values = {key: value for key, value in payload.items() if key in allowed}
     try:
@@ -66,7 +84,26 @@ def append_intervention(path: Path | str, record: InterventionReceipt) -> None:
 
 
 def latest_interventions(records: Iterable[InterventionReceipt]) -> list[InterventionReceipt]:
-    latest: dict[str, InterventionReceipt] = {}
+    latest: dict[tuple[str, str, str], InterventionReceipt] = {}
     for record in records:
-        latest[record.decision_id] = record
+        key = (
+            record.target_kind.casefold(),
+            record.target.casefold(),
+            record.scope.casefold(),
+        )
+        latest[key] = record
     return list(latest.values())
+
+
+def intervention_histories(
+    records: Iterable[InterventionReceipt],
+) -> dict[tuple[str, str, str], list[InterventionReceipt]]:
+    histories: dict[tuple[str, str, str], list[InterventionReceipt]] = {}
+    for record in records:
+        key = (
+            record.target_kind.casefold(),
+            record.target.casefold(),
+            record.scope.casefold(),
+        )
+        histories.setdefault(key, []).append(record)
+    return histories
